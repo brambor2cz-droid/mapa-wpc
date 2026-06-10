@@ -594,6 +594,7 @@ if (enteredPassword !== ADMIN_PASSWORD) {
   <input type="text" id="adminMapPlaceAddress" placeholder="Adresa, např. Heřmanice v Podještědí 135">
   <input type="text" id="adminMapPlacePhone" placeholder="Telefon, např. +420 777 123 456">
   <input type="email" id="adminMapPlaceEmail" placeholder="E-mail, např. info@firma.cz">
+  <input type="url" id="adminMapPlaceWebsite" placeholder="Web partnera, např. https://www.firma.cz">
   <input type="text" id="adminMapPlaceLat" placeholder="GPS šířka, např. 50.765">
   <input type="text" id="adminMapPlaceLng" placeholder="GPS délka, např. 14.930">
   <button type="button" id="adminMapUseMapClickButton">Vybrat bod kliknutím do mapy</button>
@@ -841,6 +842,7 @@ if (enteredPassword !== ADMIN_PASSWORD) {
       address: row.address,
       phone: row.phone,
       email: row.email,
+      website: row.website,
       types: row.types || [],
       services: row.services || [],
       openingHours: row.opening_hours || {},
@@ -859,6 +861,7 @@ if (enteredPassword !== ADMIN_PASSWORD) {
         address: place.address,
         phone: place.phone,
         email: place.email,
+        website: place.website,
         types: place.types,
         services: place.services,
         opening_hours: place.openingHours,
@@ -878,6 +881,7 @@ if (enteredPassword !== ADMIN_PASSWORD) {
       address: data.address,
       phone: data.phone,
       email: data.email,
+      website: data.website,
       types: data.types || [],
       services: data.services || [],
       openingHours: data.opening_hours || {},
@@ -894,6 +898,7 @@ if (enteredPassword !== ADMIN_PASSWORD) {
         address: place.address,
         phone: place.phone,
         email: place.email,
+        website: place.website,
         types: place.types,
         services: place.services,
         opening_hours: place.openingHours,
@@ -914,6 +919,7 @@ if (enteredPassword !== ADMIN_PASSWORD) {
       address: data.address,
       phone: data.phone,
       email: data.email,
+      website: data.website,
       types: data.types || [],
       services: data.services || [],
       openingHours: data.opening_hours || {},
@@ -1053,6 +1059,7 @@ if (enteredPassword !== ADMIN_PASSWORD) {
     document.getElementById('adminMapPlaceAddress').value = place.address || '';
     document.getElementById('adminMapPlacePhone').value = place.phone || '';
     document.getElementById('adminMapPlaceEmail').value = place.email || '';
+    document.getElementById('adminMapPlaceWebsite').value = place.website || '';
     document.getElementById('adminMapPlaceLat').value = place.lat || '';
     document.getElementById('adminMapPlaceLng').value = place.lng || '';
 
@@ -1084,6 +1091,7 @@ if (enteredPassword !== ADMIN_PASSWORD) {
     document.getElementById('adminMapPlaceAddress').value = '';
     document.getElementById('adminMapPlacePhone').value = '';
     document.getElementById('adminMapPlaceEmail').value = '';
+    document.getElementById('adminMapPlaceWebsite').value = '';
     document.getElementById('adminMapPlaceLat').value = '';
     document.getElementById('adminMapPlaceLng').value = '';
 
@@ -1232,6 +1240,15 @@ if (enteredPassword !== ADMIN_PASSWORD) {
       </div>
 
       <div class="admin-map-modal-section">
+        <strong>Web partnera:</strong>
+        ${
+          place.website
+            ? `<a href="${place.website}" target="_blank" rel="noopener noreferrer">${place.website}</a>`
+            : 'Neuvedeno'
+        }
+      </div>
+
+      <div class="admin-map-modal-section">
         <strong>Typ bodu:</strong>
         ${place.types && place.types.length ? place.types.map(getTypeLabel).join(', ') : 'Neuvedeno'}
       </div>
@@ -1353,6 +1370,11 @@ if (enteredPassword !== ADMIN_PASSWORD) {
 
     const phone = document.getElementById('adminMapPlacePhone').value.trim();
     const email = document.getElementById('adminMapPlaceEmail').value.trim();
+    let website = document.getElementById('adminMapPlaceWebsite').value.trim();
+
+    if (website && !website.startsWith('http://') && !website.startsWith('https://')) {
+      website = 'https://' + website;
+    }
     const manualLat = parseFloat(latInput.value.replace(',', '.'));
     const manualLng = parseFloat(lngInput.value.replace(',', '.'));
 
@@ -1511,6 +1533,7 @@ if (enteredPassword !== ADMIN_PASSWORD) {
         address: finalAddress,
         phone,
         email,
+        website,
         types,
         services,
         openingHours,
