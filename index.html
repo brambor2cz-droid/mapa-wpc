@@ -1,3 +1,15 @@
+
+<script>
+const ADMIN_PASSWORD = "Lambowood2025";
+
+const enteredPassword = prompt("Zadejte heslo pro vstup do administrace:");
+
+if (enteredPassword !== ADMIN_PASSWORD) {
+    document.body.innerHTML = "<div style='padding:40px;font-family:Arial'><h1>Přístup odepřen</h1><p>Bylo zadáno nesprávné heslo.</p></div>";
+    throw new Error("Unauthorized");
+}
+</script>
+
 <meta charset="UTF-8">
 <title>Mapa prodejních míst</title>
 
