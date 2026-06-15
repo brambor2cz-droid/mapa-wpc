@@ -52,7 +52,30 @@
             font-weight: 700;
             cursor: pointer;
           }
-        </style>
+        
+.opening-hours-display{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-top:8px;
+}
+.opening-hours-display .row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 10px;
+  background:#f7f8fa;
+  border-radius:8px;
+}
+.opening-hours-display .day{
+  font-weight:600;
+}
+.opening-hours-display .time{
+  color:#2e7d32;
+  font-weight:700;
+}
+
+</style>
       </head>
       <body>
         <div class="denied-box">
@@ -652,6 +675,29 @@
       grid-column: span 2;
     }
   }
+
+.opening-hours-display{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-top:8px;
+}
+.opening-hours-display .row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 10px;
+  background:#f7f8fa;
+  border-radius:8px;
+}
+.opening-hours-display .day{
+  font-weight:600;
+}
+.opening-hours-display .time{
+  color:#2e7d32;
+  font-weight:700;
+}
+
 </style>
 
 
