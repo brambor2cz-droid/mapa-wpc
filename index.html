@@ -332,18 +332,6 @@ if (enteredPassword !== ADMIN_PASSWORD) {
   }
 
 
-  .leaflet-transparent-marker {
-    background: transparent !important;
-    border: none !important;
-  }
-
-  .leaflet-transparent-marker,
-  .leaflet-transparent-marker * {
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
   .partner-image-marker {
     width: 58px;
     height: 70px;
@@ -351,9 +339,7 @@ if (enteredPassword !== ADMIN_PASSWORD) {
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    background-color: transparent !important;
-    mix-blend-mode: multiply;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.28));
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));
   }
 
   .map-pin {
@@ -786,7 +772,7 @@ if (enteredPassword !== ADMIN_PASSWORD) {
     if (sortedTypes.length === 1 && sortedTypes.includes('prodejce')) {
       return L.divIcon({
         html: '<div class="partner-image-marker"></div>',
-        className: 'leaflet-transparent-marker',
+        className: '',
         iconSize: [58, 70],
         iconAnchor: [29, 70],
         popupAnchor: [0, -70]
