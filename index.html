@@ -1721,64 +1721,56 @@ if (enteredPassword !== ADMIN_PASSWORD) {
 </script>
 
 
+
+
+
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-
   const phoneInput = document.getElementById('adminMapPlacePhone');
+
+  function formatPhoneCZ(value) {
+    let digits = String(value || '').replace(/\D/g, '');
+
+    // Když uživatel píše českou předvolbu 420, ponecháme ji.
+    // Jinak automaticky doplníme +420.
+    if (digits.startsWith('420')) {
+      digits = digits.slice(0, 12); // 420 + 9 číslic
+    } else {
+      digits = digits.slice(0, 9); // pouze české lokální číslo
+      digits = '420' + digits;
+    }
+
+    const local = digits.slice(3, 12);
+
+    if (!local) return '+420';
+
+    const formattedLocal = local.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+    return '+420 ' + formattedLocal;
+  }
+
   if (phoneInput) {
+    phoneInput.setAttribute('inputmode', 'tel');
+    phoneInput.setAttribute('maxlength', '16');
+    phoneInput.setAttribute('placeholder', 'Telefon, např. +420 777 123 456');
+
     phoneInput.addEventListener('input', function() {
-      let v = this.value.replace(/\D/g,'');
-      if (v.length > 9) v = v.substring(0,9);
-      this.value = v.replace(/(\d{3})(\d{0,3})(\d{0,3})/, (_,a,b,c) =>
-        [a,b,c].filter(Boolean).join(' ')
-      );
+      this.value = formatPhoneCZ(this.value);
     });
-  }
 
-  const addBtn = document.getElementById('adminMapAddPlaceButton');
-  const emailInput = document.getElementById('adminMapPlaceEmail');
+    phoneInput.addEventListener('blur', function() {
+      const digits = this.value.replace(/\D/g, '');
 
-  if (addBtn && emailInput) {
-    addBtn.addEventListener('click', function(e) {
-      const email = emailInput.value.trim();
-
-      if (email !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        alert('Zadejte platný e-mail ve formátu např. info@example.cz');
-        emailInput.focus();
-        e.stopImmediatePropagation();
-        e.preventDefault();
-        return false;
-      }
-    }, true);
-  }
-});
-</script>
-<script>
-
-document.addEventListener('DOMContentLoaded', () => {
-  const phoneInput = document.getElementById('adminMapPlacePhone');
-  if (phoneInput) {
-    phoneInput.addEventListener('input', function() {
-      let value = this.value.replace(/\D/g, '');
-
-      if (value.startsWith('420')) {
-        value = value.substring(0, 12);
-      } else {
-        value = value.substring(0, 9);
+      if (digits === '420') {
+        this.value = '';
+        return;
       }
 
-      if (value.startsWith('420')) {
-        const local = value.substring(3);
-        this.value = '+420 ' + local.replace(/(\d{3})(\d{0,3})(\d{0,3})/, (_,a,b,c) =>
-          [a,b,c].filter(Boolean).join(' ')
-        );
-      } else {
-        this.value = value.replace(/(\d{3})(\d{0,3})(\d{0,3})/, (_,a,b,c) =>
-          ['+420',a,b,c].filter(Boolean).join(' ')
-        );
+      if (digits.length > 0 && digits.length !== 12) {
+        alert('Telefon zadejte ve formátu +420 777 123 456.');
+        this.focus();
       }
     });
   }
 });
-
 </script>
