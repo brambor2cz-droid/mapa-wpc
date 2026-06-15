@@ -332,25 +332,28 @@ if (enteredPassword !== ADMIN_PASSWORD) {
   }
 
 
-  .partner-image-marker {
-    width: 70px;
-    height: 84px;
-    background-image: url('https://3a76a2a4ae.clvaw-cdnwnd.com/df9423756d43f2b8c09f3f3286b73ed2/200006073-0e95a0e95c/450/03_prodejce.webp?ph=3a76a2a4ae');
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: transparent;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));
-  }
-
-
   .leaflet-transparent-marker {
     background: transparent !important;
     border: none !important;
   }
 
-  .leaflet-transparent-marker div {
+  .leaflet-transparent-marker,
+  .leaflet-transparent-marker * {
     background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .partner-image-marker {
+    width: 58px;
+    height: 70px;
+    background-image: url('https://3a76a2a4ae.clvaw-cdnwnd.com/df9423756d43f2b8c09f3f3286b73ed2/200006073-0e95a0e95c/450/03_prodejce.webp?ph=3a76a2a4ae');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: transparent !important;
+    mix-blend-mode: multiply;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.28));
   }
 
   .map-pin {
@@ -784,9 +787,9 @@ if (enteredPassword !== ADMIN_PASSWORD) {
       return L.divIcon({
         html: '<div class="partner-image-marker"></div>',
         className: 'leaflet-transparent-marker',
-        iconSize: [70, 84],
-        iconAnchor: [35, 84],
-        popupAnchor: [0, -84]
+        iconSize: [58, 70],
+        iconAnchor: [29, 70],
+        popupAnchor: [0, -70]
       });
     }
 
