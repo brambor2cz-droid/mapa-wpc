@@ -91,7 +91,8 @@
 
   button,
   input,
-  select {
+  select,
+  textarea {
     font-family: inherit;
   }
 
@@ -110,7 +111,8 @@
   }
 
   input,
-  select {
+  select,
+  textarea {
     border: 1px solid #c7ccd1;
     border-radius: 8px;
     padding: 10px 12px;
@@ -119,8 +121,14 @@
     background: #ffffff;
   }
 
+  textarea {
+    resize: vertical;
+    min-height: 86px;
+  }
+
   input:focus,
-  select:focus {
+  select:focus,
+  textarea:focus {
     outline: none;
     border-color: #2e7d32;
     box-shadow: 0 0 0 3px rgba(46,125,50,0.14);
@@ -232,12 +240,17 @@
 
   .add-form > input,
   .add-form > button,
+  .add-form > textarea,
   .add-form > .dropdown {
     width: 100%;
   }
 
   #adminMapPlaceAddress {
     grid-column: span 2;
+  }
+
+  #adminMapPlaceNote {
+    grid-column: 1 / -1;
   }
 
   #adminMapUseMapClickButton {
@@ -679,6 +692,7 @@
   <input type="text" id="adminMapPlacePhone" placeholder="Telefon, např. +420 777 123 456" inputmode="tel" maxlength="13">
   <input type="email" id="adminMapPlaceEmail" placeholder="E-mail, např. info@firma.cz" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+\.[^\s@]+$|^[^\s@]+@[^\s@]+\.[^\s@]+$">
   <input type="url" id="adminMapPlaceWebsite" placeholder="Web partnera, např. https://www.firma.cz">
+  <textarea id="adminMapPlaceNote" placeholder="Poznámka k partnerovi"></textarea>
   <input type="text" id="adminMapPlaceLat" placeholder="GPS šířka, např. 50.765">
   <input type="text" id="adminMapPlaceLng" placeholder="GPS délka, např. 14.930">
   <button type="button" id="adminMapUseMapClickButton">Vybrat bod kliknutím do mapy</button>
@@ -998,6 +1012,7 @@
       phone: row.phone,
       email: row.email,
       website: row.website,
+      note: row.note || '',
       types: row.types || [],
       services: row.services || [],
       openingHours: row.opening_hours || {},
@@ -1017,6 +1032,7 @@
         phone: place.phone,
         email: place.email,
         website: place.website,
+          note: place.note || '',
         types: place.types,
         services: place.services,
         opening_hours: place.openingHours,
@@ -1037,6 +1053,7 @@
       phone: data.phone,
       email: data.email,
       website: data.website,
+      note,
       types: data.types || [],
       services: data.services || [],
       openingHours: data.opening_hours || {},
@@ -1054,6 +1071,7 @@
         phone: place.phone,
         email: place.email,
         website: place.website,
+          note: place.note || '',
         types: place.types,
         services: place.services,
         opening_hours: place.openingHours,
@@ -1075,6 +1093,7 @@
       phone: data.phone,
       email: data.email,
       website: data.website,
+      note,
       types: data.types || [],
       services: data.services || [],
       openingHours: data.opening_hours || {},
@@ -1215,6 +1234,7 @@
     document.getElementById('adminMapPlacePhone').value = place.phone || '';
     document.getElementById('adminMapPlaceEmail').value = place.email || '';
     document.getElementById('adminMapPlaceWebsite').value = place.website || '';
+    document.getElementById('adminMapPlaceNote').value = place.note || '';
     document.getElementById('adminMapPlaceLat').value = place.lat || '';
     document.getElementById('adminMapPlaceLng').value = place.lng || '';
 
@@ -1247,6 +1267,7 @@
     document.getElementById('adminMapPlacePhone').value = '';
     document.getElementById('adminMapPlaceEmail').value = '';
     document.getElementById('adminMapPlaceWebsite').value = '';
+    document.getElementById('adminMapPlaceNote').value = '';
     document.getElementById('adminMapPlaceLat').value = '';
     document.getElementById('adminMapPlaceLng').value = '';
 
@@ -1404,6 +1425,11 @@
       </div>
 
       <div class="admin-map-modal-section">
+        <strong>Poznámka:</strong>
+        ${place.note || 'Neuvedeno'}
+      </div>
+
+      <div class="admin-map-modal-section">
         <strong>Zařazení partnera:</strong>
         ${place.types && place.types.length ? place.types.map(getTypeLabel).join(', ') : 'Neuvedeno'}
       </div>
@@ -1530,6 +1556,8 @@
     if (website && !website.startsWith('http://') && !website.startsWith('https://')) {
       website = 'https://' + website;
     }
+
+    const note = document.getElementById('adminMapPlaceNote').value.trim();
     const manualLat = parseFloat(latInput.value.replace(',', '.'));
     const manualLng = parseFloat(lngInput.value.replace(',', '.'));
 
