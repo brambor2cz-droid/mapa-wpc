@@ -331,6 +331,17 @@ if (enteredPassword !== ADMIN_PASSWORD) {
     box-shadow: 0 2px 8px rgba(0,0,0,0.35);
   }
 
+
+  .partner-image-marker {
+    width: 58px;
+    height: 70px;
+    background-image: url('https://3a76a2a4ae.clvaw-cdnwnd.com/df9423756d43f2b8c09f3f3286b73ed2/200006071-de8e2de8e3/ChatGPT%20Image%2015.%206.%202026%2008_17_39.webp?ph=3a76a2a4ae');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));
+  }
+
   .map-pin {
     position: relative;
     width: 44px;
@@ -758,6 +769,16 @@ if (enteredPassword !== ADMIN_PASSWORD) {
   function getMarkerIcon(types) {
     const sortedTypes = [...types].sort();
 
+    if (sortedTypes.length === 1 && sortedTypes.includes('prodejce')) {
+      return L.divIcon({
+        html: '<div class="partner-image-marker"></div>',
+        className: '',
+        iconSize: [58, 70],
+        iconAnchor: [29, 70],
+        popupAnchor: [0, -70]
+      });
+    }
+
     let pinClass = 'pin-all-types';
     let icons = [];
 
@@ -767,9 +788,6 @@ if (enteredPassword !== ADMIN_PASSWORD) {
     } else if (sortedTypes.length === 1 && sortedTypes.includes('vydejni_misto')) {
       pinClass = 'pin-vydejni_misto';
       icons = ['📦'];
-    } else if (sortedTypes.length === 1 && sortedTypes.includes('prodejce')) {
-      pinClass = 'pin-prodejce';
-      icons = ['👤'];
     } else if (sortedTypes.includes('vzorkovna') && sortedTypes.includes('vydejni_misto') && sortedTypes.length === 2) {
       pinClass = 'pin-vzorkovna-vydejni_misto';
       icons = ['🏪', '📦'];
