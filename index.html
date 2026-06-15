@@ -1,13 +1,75 @@
 
 <script>
-const ADMIN_PASSWORD = "Lambowood2025";
+(function () {
+  const ADMIN_PASSWORD = "Lambowood2025";
+  const enteredPassword = prompt("Zadejte heslo pro vstup do administrace:");
 
-const enteredPassword = prompt("Zadejte heslo pro vstup do administrace:");
+  if (enteredPassword !== ADMIN_PASSWORD) {
+    document.open();
+    document.write(`
+      <!DOCTYPE html>
+      <html lang="cs">
+      <head>
+        <meta charset="UTF-8">
+        <title>Přístup odepřen</title>
+        <style>
+          body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            background: #f3f5f7;
+            color: #1f2933;
+          }
 
-if (enteredPassword !== ADMIN_PASSWORD) {
-    document.body.innerHTML = "<div style='padding:40px;font-family:Arial'><h1>Přístup odepřen</h1><p>Bylo zadáno nesprávné heslo.</p></div>";
+          .denied-box {
+            width: min(480px, calc(100% - 32px));
+            background: #ffffff;
+            border: 1px solid #d9dee3;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+          }
+
+          .denied-box h1 {
+            margin: 0 0 12px;
+            color: #9b1c1c;
+          }
+
+          .denied-box p {
+            margin: 0 0 20px;
+          }
+
+          .denied-box button {
+            border: 0;
+            border-radius: 999px;
+            padding: 10px 18px;
+            background: #2e7d32;
+            color: #ffffff;
+            font-weight: 700;
+            cursor: pointer;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="denied-box">
+          <h1>Přístup odepřen</h1>
+          <p>Bylo zadáno nesprávné heslo.</p>
+          <button onclick="location.reload()">Zkusit znovu</button>
+        </div>
+      </body>
+      </html>
+    `);
+    document.close();
+    window.stop();
     throw new Error("Unauthorized");
-}
+  }
+
+  window.ADMIN_ACCESS_GRANTED = true;
+})();
 </script>
 
 <meta charset="UTF-8">
@@ -904,6 +966,11 @@ if (enteredPassword !== ADMIN_PASSWORD) {
     { key: 'saturday', label: 'Sobota' },
     { key: 'sunday', label: 'Neděle' }
   ];
+
+
+  if (window.ADMIN_ACCESS_GRANTED !== true) {
+    throw new Error("Unauthorized");
+  }
 
   const SUPABASE_URL = 'https://hzjshvdjxybvgivmfecd.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6anNodmRqeHlidmdpdm1mZWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwOTM2MDgsImV4cCI6MjA5NjY2OTYwOH0.xPRbUHoVR1I7HN6Newrz4h-3R9vykh7gRCHzou7HGOk';
