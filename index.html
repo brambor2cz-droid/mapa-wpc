@@ -1753,3 +1753,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+<script>
+
+document.addEventListener('DOMContentLoaded', () => {
+  const phoneInput = document.getElementById('adminMapPlacePhone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function() {
+      let value = this.value.replace(/\D/g, '');
+
+      if (value.startsWith('420')) {
+        value = value.substring(0, 12);
+      } else {
+        value = value.substring(0, 9);
+      }
+
+      if (value.startsWith('420')) {
+        const local = value.substring(3);
+        this.value = '+420 ' + local.replace(/(\d{3})(\d{0,3})(\d{0,3})/, (_,a,b,c) =>
+          [a,b,c].filter(Boolean).join(' ')
+        );
+      } else {
+        this.value = value.replace(/(\d{3})(\d{0,3})(\d{0,3})/, (_,a,b,c) =>
+          ['+420',a,b,c].filter(Boolean).join(' ')
+        );
+      }
+    });
+  }
+});
+
+</script>
