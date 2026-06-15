@@ -614,8 +614,8 @@ if (enteredPassword !== ADMIN_PASSWORD) {
 <div class="add-form">
   <input type="text" id="adminMapPlaceName" placeholder="Název místa">
   <input type="text" id="adminMapPlaceAddress" placeholder="Adresa, např. Heřmanice v Podještědí 135">
-  <input type="text" id="adminMapPlacePhone" placeholder="Telefon, např. +420 777 123 456">
-  <input type="email" id="adminMapPlaceEmail" placeholder="E-mail, např. info@firma.cz">
+  <input type="text" id="adminMapPlacePhone" placeholder="Telefon, např. +420 777 123 456" inputmode="tel" maxlength="13" placeholder="123 456 789">>
+  <input type="email" id="adminMapPlaceEmail" placeholder="E-mail, např. info@firma.cz" type="email" placeholder="info@example.cz" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$">>
   <input type="url" id="adminMapPlaceWebsite" placeholder="Web partnera, např. https://www.firma.cz">
   <input type="text" id="adminMapPlaceLat" placeholder="GPS šířka, např. 50.765">
   <input type="text" id="adminMapPlaceLng" placeholder="GPS délka, např. 14.930">
@@ -1718,4 +1718,38 @@ if (enteredPassword !== ADMIN_PASSWORD) {
   });
 
   loadPlacesFromSupabase();
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  const phoneInput = document.getElementById('adminMapPlacePhone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function() {
+      let v = this.value.replace(/\D/g,'');
+      if (v.length > 9) v = v.substring(0,9);
+      this.value = v.replace(/(\d{3})(\d{0,3})(\d{0,3})/, (_,a,b,c) =>
+        [a,b,c].filter(Boolean).join(' ')
+      );
+    });
+  }
+
+  const addBtn = document.getElementById('adminMapAddPlaceButton');
+  const emailInput = document.getElementById('adminMapPlaceEmail');
+
+  if (addBtn && emailInput) {
+    addBtn.addEventListener('click', function(e) {
+      const email = emailInput.value.trim();
+
+      if (email !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('Zadejte platný e-mail ve formátu např. info@example.cz');
+        emailInput.focus();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        return false;
+      }
+    }, true);
+  }
+});
 </script>
