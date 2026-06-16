@@ -1670,8 +1670,6 @@
     title.textContent = place.name || 'Detail bodu';
 
     body.innerHTML = `
-      ${renderPhotoSlideshow(place)}
-
       <div class="admin-map-modal-section">
         <strong>Adresa:</strong>
         ${place.address || 'Neuvedeno'}
@@ -1715,6 +1713,8 @@
         <strong>Otevírací doba:</strong>
         ${formatOpeningHours(place.openingHours)}
       </div>
+
+      ${renderPhotoSlideshow(place)}
     `;
 
     initAdminPhotoSlideshow();
