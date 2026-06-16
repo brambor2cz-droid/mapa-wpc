@@ -53,6 +53,92 @@
             cursor: pointer;
           }
         
+
+  #adminMapPlacePhotos {
+    grid-column: 1 / -1;
+  }
+
+  .admin-map-photo-slideshow {
+    grid-column: 1 / -1;
+    border: 1px solid #e5e9ed;
+    border-radius: 14px;
+    background: #f8fafc;
+    padding: 14px;
+  }
+
+  .admin-map-photo-slideshow strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #2e7d32;
+    font-size: 14px;
+  }
+
+  .admin-map-slider {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #111827;
+  }
+
+  .admin-map-slider img {
+    display: none;
+    width: 100%;
+    height: min(420px, 55vh);
+    object-fit: cover;
+    background: #111827;
+  }
+
+  .admin-map-slider img.active {
+    display: block;
+  }
+
+  .admin-map-slider-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    color: #1f2933;
+    font-size: 26px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  }
+
+  .admin-map-slider-button.prev {
+    left: 12px;
+  }
+
+  .admin-map-slider-button.next {
+    right: 12px;
+  }
+
+  .admin-map-slider-dots {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 10px;
+  }
+
+  .admin-map-slider-dot {
+    width: 10px;
+    height: 10px;
+    border: 0;
+    border-radius: 999px;
+    background: #c7ccd1;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .admin-map-slider-dot.active {
+    background: #2e7d32;
+  }
+
 </style>
       </head>
       <body>
@@ -738,6 +824,7 @@
   <input type="email" id="adminMapPlaceEmail" placeholder="E-mail, např. info@firma.cz" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+\.[^\s@]+$|^[^\s@]+@[^\s@]+\.[^\s@]+$">
   <input type="url" id="adminMapPlaceWebsite" placeholder="Web partnera, např. https://www.firma.cz">
   <textarea id="adminMapPlaceNote" placeholder="Poznámka k partnerovi"></textarea>
+  <textarea id="adminMapPlacePhotos" placeholder="Odkazy na fotky pro slideshow – každý odkaz dej na nový řádek nebo odděl čárkou"></textarea>
   <input type="text" id="adminMapPlaceLat" placeholder="GPS šířka, např. 50.765">
   <input type="text" id="adminMapPlaceLng" placeholder="GPS délka, např. 14.930">
   <button type="button" id="adminMapUseMapClickButton">Vybrat bod kliknutím do mapy</button>
@@ -1058,6 +1145,7 @@
       email: row.email,
       website: row.website,
       note: row.note || '',
+      photos: row.photos || [],
       types: row.types || [],
       services: row.services || [],
       openingHours: row.opening_hours || {},
@@ -1078,6 +1166,7 @@
         email: place.email,
         website: place.website,
           note: place.note || '',
+        photos: place.photos || [],
         types: place.types,
         services: place.services,
         opening_hours: place.openingHours,
@@ -1098,7 +1187,8 @@
       phone: data.phone,
       email: data.email,
       website: data.website,
-      note: (document.getElementById('adminMapPlaceNote') ? document.getElementById('adminMapPlaceNote').value.trim() : ''),
+      note: data.note || '',
+      photos: data.photos || [],
       types: data.types || [],
       services: data.services || [],
       openingHours: data.opening_hours || {},
@@ -1117,6 +1207,7 @@
         email: place.email,
         website: place.website,
           note: place.note || '',
+        photos: place.photos || [],
         types: place.types,
         services: place.services,
         opening_hours: place.openingHours,
@@ -1138,7 +1229,8 @@
       phone: data.phone,
       email: data.email,
       website: data.website,
-      note: (document.getElementById('adminMapPlaceNote') ? document.getElementById('adminMapPlaceNote').value.trim() : ''),
+      note: data.note || '',
+      photos: data.photos || [],
       types: data.types || [],
       services: data.services || [],
       openingHours: data.opening_hours || {},
@@ -1294,6 +1386,7 @@
     document.getElementById('adminMapPlaceEmail').value = place.email || '';
     document.getElementById('adminMapPlaceWebsite').value = place.website || '';
     document.getElementById('adminMapPlaceNote').value = place.note || '';
+    document.getElementById('adminMapPlacePhotos').value = getPhotoUrlsFromPlace(place).join('\n');
     document.getElementById('adminMapPlaceLat').value = place.lat || '';
     document.getElementById('adminMapPlaceLng').value = place.lng || '';
 
@@ -1327,6 +1420,7 @@
     document.getElementById('adminMapPlaceEmail').value = '';
     document.getElementById('adminMapPlaceWebsite').value = '';
     document.getElementById('adminMapPlaceNote').value = '';
+    document.getElementById('adminMapPlacePhotos').value = '';
     document.getElementById('adminMapPlaceLat').value = '';
     document.getElementById('adminMapPlaceLng').value = '';
 
@@ -1446,6 +1540,123 @@
     alert('Souřadnice byly vyplněny do formuláře.');
   });
 
+
+  function parsePhotoUrls(value) {
+    return String(value || '')
+      .split(/[\n,]+/)
+      .map(url => url.trim())
+      .filter(Boolean);
+  }
+
+  function getPhotoUrlsFromPlace(place) {
+    if (!place) return [];
+
+    if (Array.isArray(place.photos)) {
+      return place.photos.map(url => String(url || '').trim()).filter(Boolean);
+    }
+
+    if (typeof place.photos === 'string') {
+      return parsePhotoUrls(place.photos);
+    }
+
+    return [];
+  }
+
+  function escapeAttribute(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function renderPhotoSlideshow(place) {
+    const photos = getPhotoUrlsFromPlace(place);
+
+    if (!photos.length) return '';
+
+    const slides = photos.map((url, index) => `
+      <img
+        src="${escapeAttribute(url)}"
+        alt="Fotografie partnera ${index + 1}"
+        class="${index === 0 ? 'active' : ''}"
+        data-slide="${index}"
+        loading="lazy"
+      >
+    `).join('');
+
+    const buttons = photos.length > 1 ? `
+      <button type="button" class="admin-map-slider-button prev" data-slider-action="prev" aria-label="Předchozí fotka">&lsaquo;</button>
+      <button type="button" class="admin-map-slider-button next" data-slider-action="next" aria-label="Další fotka">&rsaquo;</button>
+    ` : '';
+
+    const dots = photos.length > 1 ? `
+      <div class="admin-map-slider-dots">
+        ${photos.map((url, index) => `
+          <button
+            type="button"
+            class="admin-map-slider-dot ${index === 0 ? 'active' : ''}"
+            data-slider-dot="${index}"
+            aria-label="Zobrazit fotku ${index + 1}"
+          ></button>
+        `).join('')}
+      </div>
+    ` : '';
+
+    return `
+      <div class="admin-map-photo-slideshow">
+        <strong>Fotografie partnera:</strong>
+        <div class="admin-map-slider" data-current-slide="0">
+          ${slides}
+          ${buttons}
+        </div>
+        ${dots}
+      </div>
+    `;
+  }
+
+  function initAdminPhotoSlideshow() {
+    const slider = document.querySelector('.admin-map-slider');
+    if (!slider) return;
+
+    const slides = Array.from(slider.querySelectorAll('img[data-slide]'));
+    const dots = Array.from(document.querySelectorAll('.admin-map-slider-dot'));
+
+    if (!slides.length) return;
+
+    function showSlide(index) {
+      const nextIndex = (index + slides.length) % slides.length;
+
+      slides.forEach((slide, slideIndex) => {
+        slide.classList.toggle('active', slideIndex === nextIndex);
+      });
+
+      dots.forEach((dot, dotIndex) => {
+        dot.classList.toggle('active', dotIndex === nextIndex);
+      });
+
+      slider.dataset.currentSlide = String(nextIndex);
+    }
+
+    slider.querySelectorAll('[data-slider-action]').forEach(button => {
+      button.addEventListener('click', function(event) {
+        event.stopPropagation();
+
+        const current = parseInt(slider.dataset.currentSlide || '0', 10);
+        const direction = this.dataset.sliderAction === 'next' ? 1 : -1;
+
+        showSlide(current + direction);
+      });
+    });
+
+    dots.forEach(dot => {
+      dot.addEventListener('click', function(event) {
+        event.stopPropagation();
+        showSlide(parseInt(this.dataset.sliderDot || '0', 10));
+      });
+    });
+  }
+
   function openPlaceModal(index) {
     const place = places[index];
 
@@ -1459,6 +1670,8 @@
     title.textContent = place.name || 'Detail bodu';
 
     body.innerHTML = `
+      ${renderPhotoSlideshow(place)}
+
       <div class="admin-map-modal-section">
         <strong>Adresa:</strong>
         ${place.address || 'Neuvedeno'}
@@ -1503,6 +1716,8 @@
         ${formatOpeningHours(place.openingHours)}
       </div>
     `;
+
+    initAdminPhotoSlideshow();
 
     editButton.onclick = function() {
       closePlaceModal();
@@ -1617,6 +1832,7 @@
     }
 
     const note = document.getElementById('adminMapPlaceNote').value.trim();
+    const photos = parsePhotoUrls(document.getElementById('adminMapPlacePhotos').value);
     const manualLat = parseFloat(latInput.value.replace(',', '.'));
     const manualLng = parseFloat(lngInput.value.replace(',', '.'));
 
@@ -1776,6 +1992,8 @@
         phone,
         email,
         website,
+        note,
+        photos,
         types,
         services,
         openingHours,
