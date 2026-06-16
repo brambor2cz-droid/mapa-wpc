@@ -810,6 +810,49 @@
     overflow-x: hidden;
   }
 
+
+  /* FINÁLNÍ OPRAVA FOTOGALERIE - fotka se celá vejde do modalu bez ořezu */
+  .admin-map-photo-slideshow {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .admin-map-slider {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    display: block !important;
+    background: #111827 !important;
+    border-radius: 12px !important;
+    text-align: center !important;
+  }
+
+  .admin-map-slider img,
+  .admin-map-slider img.active {
+    display: none !important;
+    width: auto !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 62vh !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    margin: 0 auto !important;
+    background: #111827 !important;
+  }
+
+  .admin-map-slider img.active {
+    display: block !important;
+  }
+
+  .admin-map-modal-body {
+    overflow-x: hidden !important;
+  }
+
 </style>
 
 
