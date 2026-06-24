@@ -1266,10 +1266,6 @@
       lng: row.lng
     }));
 
-    places.forEach(place => {
-      place.checked = getPlaceCheckedValue(place);
-    });
-
     renderMarkers();
   }
 
@@ -1287,6 +1283,7 @@
         types: place.types,
         services: place.services,
         opening_hours: place.openingHours,
+        checked: !!place.checked,
         lat: place.lat,
         lng: place.lng
       })
@@ -1329,6 +1326,7 @@
         types: place.types,
         services: place.services,
         opening_hours: place.openingHours,
+        checked: !!place.checked,
         lat: place.lat,
         lng: place.lng
       })
@@ -2133,8 +2131,6 @@
         savedPlace = await insertPlaceToSupabase(updatedPlace);
         places.push(savedPlace);
       }
-
-      savePlaceCheckedValue(savedPlace, checked);
 
       renderMarkers();
       map.setView([savedPlace.lat, savedPlace.lng], 13);
