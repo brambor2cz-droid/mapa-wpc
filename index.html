@@ -894,7 +894,12 @@
   <input type="email" id="adminMapPlaceEmail" placeholder="E-mail, např. info@firma.cz" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+\.[^\s@]+$|^[^\s@]+@[^\s@]+\.[^\s@]+$">
   <input type="url" id="adminMapPlaceWebsite" placeholder="Web partnera, např. https://www.firma.cz">
   <textarea id="adminMapPlaceNote" placeholder="Poznámka k partnerovi"></textarea>
-  <textarea id="adminMapPlacePhotos" placeholder="Odkazy na fotky pro slideshow – každý odkaz dej na nový řádek nebo odděl čárkou"></textarea>
+  
+  <label style="grid-column: 1 / -1; display:flex; align-items:center; gap:8px;">
+    <input type="checkbox" id="adminMapChecked">
+    Zkontrolováno
+  </label>
+<textarea id="adminMapPlacePhotos" placeholder="Odkazy na fotky pro slideshow – každý odkaz dej na nový řádek nebo odděl čárkou"></textarea>
   <input type="text" id="adminMapPlaceLat" placeholder="GPS šířka, např. 50.765">
   <input type="text" id="adminMapPlaceLng" placeholder="GPS délka, např. 14.930">
   <button type="button" id="adminMapUseMapClickButton">Vybrat bod kliknutím do mapy</button>
