@@ -1200,6 +1200,43 @@
 
   let places = [];
 
+  function getPlaceCheckedStorageKey(place) {
+    if (!place) return '';
+    return 'adminMapPlaceChecked_' + (place.id || place.name || place.address || 'new');
+  }
+
+  function getPlaceCheckedValue(place) {
+    if (!place) return false;
+
+    if (typeof place.checked === 'boolean') {
+      return place.checked;
+    }
+
+    if (typeof place.zkontrolovano === 'boolean') {
+      return place.zkontrolovano;
+    }
+
+    try {
+      const storageKey = getPlaceCheckedStorageKey(place);
+      return localStorage.getItem(storageKey) === 'true';
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function savePlaceCheckedValue(place, checked) {
+    if (!place) return;
+
+    place.checked = !!checked;
+
+    try {
+      const storageKey = getPlaceCheckedStorageKey(place);
+      localStorage.setItem(storageKey, checked ? 'true' : 'false');
+    } catch (error) {
+      console.warn('Nepodařilo se uložit stav Zkontrolováno:', error);
+    }
+  }
+
   async function loadPlacesFromSupabase() {
     const { data, error } = await supabaseClient
       .from('map_places')
@@ -1224,9 +1261,14 @@
       types: row.types || [],
       services: row.services || [],
       openingHours: row.opening_hours || {},
+      checked: typeof row.checked === 'boolean' ? row.checked : false,
       lat: row.lat,
       lng: row.lng
     }));
+
+    places.forEach(place => {
+      place.checked = getPlaceCheckedValue(place);
+    });
 
     renderMarkers();
   }
@@ -1267,6 +1309,7 @@
       types: data.types || [],
       services: data.services || [],
       openingHours: data.opening_hours || {},
+      checked: typeof data.checked === 'boolean' ? data.checked : !!place.checked,
       lat: data.lat,
       lng: data.lng
     };
@@ -1309,6 +1352,7 @@
       types: data.types || [],
       services: data.services || [],
       openingHours: data.opening_hours || {},
+      checked: typeof data.checked === 'boolean' ? data.checked : !!place.checked,
       lat: data.lat,
       lng: data.lng
     };
@@ -1461,6 +1505,7 @@
     document.getElementById('adminMapPlaceEmail').value = place.email || '';
     document.getElementById('adminMapPlaceWebsite').value = place.website || '';
     document.getElementById('adminMapPlaceNote').value = place.note || '';
+    document.getElementById('adminMapChecked').checked = getPlaceCheckedValue(place);
     document.getElementById('adminMapPlacePhotos').value = getPhotoUrlsFromPlace(place).join('\n');
     document.getElementById('adminMapPlaceLat').value = place.lat || '';
     document.getElementById('adminMapPlaceLng').value = place.lng || '';
@@ -1495,6 +1540,7 @@
     document.getElementById('adminMapPlaceEmail').value = '';
     document.getElementById('adminMapPlaceWebsite').value = '';
     document.getElementById('adminMapPlaceNote').value = '';
+    document.getElementById('adminMapChecked').checked = false;
     document.getElementById('adminMapPlacePhotos').value = '';
     document.getElementById('adminMapPlaceLat').value = '';
     document.getElementById('adminMapPlaceLng').value = '';
@@ -1907,6 +1953,7 @@
     }
 
     const note = document.getElementById('adminMapPlaceNote').value.trim();
+    const checked = document.getElementById('adminMapChecked').checked;
     const photos = parsePhotoUrls(document.getElementById('adminMapPlacePhotos').value);
     const manualLat = parseFloat(latInput.value.replace(',', '.'));
     const manualLng = parseFloat(lngInput.value.replace(',', '.'));
@@ -2068,6 +2115,7 @@
         email,
         website,
         note,
+        checked,
         photos,
         types,
         services,
@@ -2085,6 +2133,8 @@
         savedPlace = await insertPlaceToSupabase(updatedPlace);
         places.push(savedPlace);
       }
+
+      savePlaceCheckedValue(savedPlace, checked);
 
       renderMarkers();
       map.setView([savedPlace.lat, savedPlace.lng], 13);
