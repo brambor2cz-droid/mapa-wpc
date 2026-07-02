@@ -562,6 +562,18 @@
     border-bottom: none;
   }
 
+  .admin-map-check-table tbody tr {
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .admin-map-check-table tbody tr:hover {
+    background: #eef6ee;
+  }
+
+  .admin-map-check-table tbody tr:hover .place-name-cell {
+    color: #2e7d32;
+  }
+
   .admin-map-check-table .place-name-cell {
     font-weight: 700;
     color: #1f2933;
@@ -1773,10 +1785,21 @@
 
     tableBody.innerHTML = '';
 
-    const checkedCount = places.filter(place => getPlaceCheckedValue(place)).length;
+    const activeFilters = Array.from(document.querySelectorAll('.adminMapFilter:checked'))
+      .map(input => input.value);
+
+    const visiblePlaces = places
+      .map((place, index) => ({ place, index }))
+      .filter(item => shouldShowPlace(item.place, activeFilters));
+
+    const checkedCount = visiblePlaces.filter(item => getPlaceCheckedValue(item.place)).length;
 
     if (countBox) {
-      countBox.textContent = `${checkedCount} / ${places.length} zkontrolováno`;
+      if (activeFilters.length) {
+        countBox.textContent = `${checkedCount} / ${visiblePlaces.length} zkontrolováno ve filtru`;
+      } else {
+        countBox.textContent = `${checkedCount} / ${places.length} zkontrolováno`;
+      }
     }
 
     if (!places.length) {
@@ -1789,8 +1812,19 @@
       return;
     }
 
-    places.forEach((place, index) => {
+    if (!visiblePlaces.length) {
       const row = document.createElement('tr');
+      const cell = document.createElement('td');
+      cell.colSpan = 2;
+      cell.textContent = 'Pro vybraný filtr nejsou žádná místa.';
+      row.appendChild(cell);
+      tableBody.appendChild(row);
+      return;
+    }
+
+    visiblePlaces.forEach(({ place, index }) => {
+      const row = document.createElement('tr');
+      row.className = 'admin-map-check-table-row';
 
       const nameCell = document.createElement('td');
       nameCell.className = 'place-name-cell';
@@ -1812,7 +1846,7 @@
       checkbox.addEventListener('change', async function() {
         const nextChecked = this.checked;
         const oldChecked = !nextChecked;
-        labelText.textContent = nextChecked ? 'Ukládám...' : 'Ukládám...';
+        labelText.textContent = 'Ukládám...';
         this.disabled = true;
 
         try {
@@ -1839,7 +1873,8 @@
     });
   }
 
-  async function updatePlaceCheckedInSupabase(index, checked) {
+
+async function updatePlaceCheckedInSupabase(index, checked) {
     const place = places[index];
 
     if (!place || !place.id) {
