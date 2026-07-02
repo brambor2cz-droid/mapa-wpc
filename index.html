@@ -484,6 +484,127 @@
     border-color: #b8d7f4;
   }
 
+
+  .admin-map-check-table-section {
+    width: min(1400px, calc(100% - 32px));
+    margin: -12px auto 32px;
+    border: 1px solid #d9dee3;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  .admin-map-check-table-header {
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    border-bottom: 1px solid #e5e9ed;
+    background: #f8fafc;
+  }
+
+  .admin-map-check-table-header h2 {
+    margin: 0 0 4px;
+    font-size: 20px;
+    color: #1f2933;
+  }
+
+  .admin-map-check-table-header p {
+    margin: 0;
+    color: #5f6b76;
+    font-size: 14px;
+  }
+
+  .admin-map-check-table-count {
+    flex: 0 0 auto;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #b9dfbd;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .admin-map-check-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .admin-map-check-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .admin-map-check-table th,
+  .admin-map-check-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #edf0f2;
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  .admin-map-check-table th {
+    background: #ffffff;
+    color: #1f2933;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .admin-map-check-table td {
+    font-size: 14px;
+  }
+
+  .admin-map-check-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .admin-map-check-table .place-name-cell {
+    font-weight: 700;
+    color: #1f2933;
+  }
+
+  .admin-map-check-table .check-cell {
+    width: 180px;
+  }
+
+  .admin-map-check-table label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    color: #2e7d32;
+  }
+
+  .admin-map-check-table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    min-height: unset;
+    accent-color: #2e7d32;
+    cursor: pointer;
+  }
+
+  @media (max-width: 620px) {
+    .admin-map-check-table-header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .admin-map-check-table-count {
+      white-space: normal;
+    }
+
+    .admin-map-check-table th,
+    .admin-map-check-table td {
+      padding: 10px 12px;
+    }
+  }
+
+
   #adminMap {
     height: 620px;
     width: min(1400px, calc(100% - 32px));
@@ -1049,6 +1170,32 @@
 </div>
 
 <div id="adminMap"></div>
+
+<section class="admin-map-check-table-section">
+  <div class="admin-map-check-table-header">
+    <div>
+      <h2>Kontrola míst</h2>
+      <p>Seznam všech míst a stav kontroly. Zaškrtnutí se ihned ukládá do Supabase.</p>
+    </div>
+    <div class="admin-map-check-table-count" id="adminMapCheckedCount">0 / 0 zkontrolováno</div>
+  </div>
+
+  <div class="admin-map-check-table-wrapper">
+    <table class="admin-map-check-table">
+      <thead>
+        <tr>
+          <th>Název místa</th>
+          <th>Zkontrolováno</th>
+        </tr>
+      </thead>
+      <tbody id="adminMapCheckedTableBody">
+        <tr>
+          <td colspan="2">Načítám místa...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1617,6 +1764,112 @@
       });
   }
 
+
+  function renderCheckedPlacesTable() {
+    const tableBody = document.getElementById('adminMapCheckedTableBody');
+    const countBox = document.getElementById('adminMapCheckedCount');
+
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '';
+
+    const checkedCount = places.filter(place => getPlaceCheckedValue(place)).length;
+
+    if (countBox) {
+      countBox.textContent = `${checkedCount} / ${places.length} zkontrolováno`;
+    }
+
+    if (!places.length) {
+      const row = document.createElement('tr');
+      const cell = document.createElement('td');
+      cell.colSpan = 2;
+      cell.textContent = 'Zatím nejsou přidaná žádná místa.';
+      row.appendChild(cell);
+      tableBody.appendChild(row);
+      return;
+    }
+
+    places.forEach((place, index) => {
+      const row = document.createElement('tr');
+
+      const nameCell = document.createElement('td');
+      nameCell.className = 'place-name-cell';
+      nameCell.textContent = place.name || 'Bez názvu';
+
+      const checkCell = document.createElement('td');
+      checkCell.className = 'check-cell';
+
+      const label = document.createElement('label');
+      const checkbox = document.createElement('input');
+
+      checkbox.type = 'checkbox';
+      checkbox.checked = getPlaceCheckedValue(place);
+      checkbox.dataset.placeIndex = String(index);
+
+      const labelText = document.createElement('span');
+      labelText.textContent = checkbox.checked ? 'Ano' : 'Ne';
+
+      checkbox.addEventListener('change', async function() {
+        const nextChecked = this.checked;
+        const oldChecked = !nextChecked;
+        labelText.textContent = nextChecked ? 'Ukládám...' : 'Ukládám...';
+        this.disabled = true;
+
+        try {
+          await updatePlaceCheckedInSupabase(index, nextChecked);
+          labelText.textContent = nextChecked ? 'Ano' : 'Ne';
+        } catch (error) {
+          this.checked = oldChecked;
+          labelText.textContent = oldChecked ? 'Ano' : 'Ne';
+          alert('Nepodařilo se uložit stav kontroly do Supabase: ' + (error.message || 'Neznámá chyba.'));
+          console.error(error);
+        } finally {
+          this.disabled = false;
+          renderCheckedPlacesTable();
+        }
+      });
+
+      label.appendChild(checkbox);
+      label.appendChild(labelText);
+      checkCell.appendChild(label);
+
+      row.appendChild(nameCell);
+      row.appendChild(checkCell);
+      tableBody.appendChild(row);
+    });
+  }
+
+  async function updatePlaceCheckedInSupabase(index, checked) {
+    const place = places[index];
+
+    if (!place || !place.id) {
+      throw new Error('Místo nemá ID ze Supabase.');
+    }
+
+    const { data, error } = await supabaseClient
+      .from('map_places')
+      .update({ checked: !!checked })
+      .eq('id', place.id)
+      .select('checked')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    place.checked = data && typeof data.checked === 'boolean' ? data.checked : !!checked;
+
+    if (editingPlaceIndex === index) {
+      const formCheckbox = document.getElementById('adminMapChecked');
+      if (formCheckbox) {
+        formCheckbox.checked = place.checked;
+      }
+    }
+
+    return place.checked;
+  }
+
+
   function renderMarkers() {
     markers.forEach(marker => map.removeLayer(marker));
     markers = [];
@@ -1641,6 +1894,8 @@
       markers.push(marker);
       markerByPlaceIndex[index] = marker;
     });
+
+    renderCheckedPlacesTable();
   }
 
   function enableMapClickSelection() {
