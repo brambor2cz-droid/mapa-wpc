@@ -1196,7 +1196,7 @@
     <table class="admin-map-check-table">
       <thead>
         <tr>
-          <th>Název místa</th>
+          <th><button type="button" id="adminMapCheckedSortButton" class="admin-map-check-table-sort-button">Název místa <span id="adminMapCheckedSortIcon">A–Z</span></button></th>
           <th>Zkontrolováno</th>
         </tr>
       </thead>
@@ -1777,6 +1777,8 @@
   }
 
 
+  let adminMapCheckedTableSortAsc = true;
+
   function renderCheckedPlacesTable() {
     const tableBody = document.getElementById('adminMapCheckedTableBody');
     const countBox = document.getElementById('adminMapCheckedCount');
@@ -1790,7 +1792,14 @@
 
     const visiblePlaces = places
       .map((place, index) => ({ place, index }))
-      .filter(item => shouldShowPlace(item.place, activeFilters));
+      .filter(item => shouldShowPlace(item.place, activeFilters))
+      .sort((a, b) => {
+        const nameA = String(a.place.name || '').localeCompare(String(b.place.name || ''), 'cs', {
+          sensitivity: 'base',
+          numeric: true
+        });
+        return adminMapCheckedTableSortAsc ? nameA : -nameA;
+      });
 
     const checkedCount = visiblePlaces.filter(item => getPlaceCheckedValue(item.place)).length;
 
@@ -1801,6 +1810,12 @@
         countBox.textContent = `${checkedCount} / ${places.length} zkontrolováno`;
       }
     }
+
+    const sortIcon = document.getElementById('adminMapCheckedSortIcon');
+    if (sortIcon) {
+      sortIcon.textContent = adminMapCheckedTableSortAsc ? 'A–Z' : 'Z–A';
+    }
+
 
     if (!places.length) {
       const row = document.createElement('tr');
@@ -2499,6 +2514,14 @@ async function updatePlaceCheckedInSupabase(index, checked) {
       dropdown.classList.remove('open');
     }
   });
+
+  const adminMapCheckedSortButton = document.getElementById('adminMapCheckedSortButton');
+  if (adminMapCheckedSortButton) {
+    adminMapCheckedSortButton.addEventListener('click', function() {
+      adminMapCheckedTableSortAsc = !adminMapCheckedTableSortAsc;
+      renderCheckedPlacesTable();
+    });
+  }
 
   loadPlacesFromSupabase();
 </script>
