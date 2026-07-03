@@ -529,6 +529,52 @@
     white-space: nowrap;
   }
 
+  .admin-map-check-table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .admin-map-duplicates-button {
+    background: #fff7e6;
+    color: #8a5a00;
+    border-color: #f0c36d;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .admin-map-duplicates-button:hover {
+    background: #ffe9b8;
+  }
+
+  .admin-map-duplicates-button.active {
+    background: #9b1c1c;
+    color: #ffffff;
+    border-color: #9b1c1c;
+  }
+
+  .admin-map-check-table tbody tr.admin-map-duplicate-row {
+    background: #fff0f0;
+  }
+
+  .admin-map-check-table tbody tr.admin-map-duplicate-row:hover {
+    background: #ffdede;
+  }
+
+  .admin-map-duplicate-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #ffe1e1;
+    color: #9b1c1c;
+    border: 1px solid #f0b4b4;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
   .admin-map-check-table-wrapper {
     width: 100%;
     overflow-x: auto;
@@ -1189,7 +1235,10 @@
       <h2>Kontrola míst</h2>
       <p>Seznam všech míst a stav kontroly. Zaškrtnutí se ihned ukládá do Supabase.</p>
     </div>
-    <div class="admin-map-check-table-count" id="adminMapCheckedCount">0 / 0 zkontrolováno</div>
+    <div class="admin-map-check-table-actions">
+      <div class="admin-map-check-table-count" id="adminMapCheckedCount">0 / 0 zkontrolováno</div>
+      <button type="button" id="adminMapFindDuplicatesButton" class="admin-map-duplicates-button">Najít duplicity</button>
+    </div>
   </div>
 
   <div class="admin-map-check-table-wrapper">
@@ -1778,6 +1827,64 @@
 
 
   let adminMapCheckedTableSortAsc = true;
+  let adminMapShowOnlyDuplicates = false;
+
+  function normalizeDuplicateText(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function getDuplicatePlaceIndexes() {
+    const byName = new Map();
+    const byAddress = new Map();
+
+    places.forEach((place, index) => {
+      const nameKey = normalizeDuplicateText(place.name);
+      const addressKey = normalizeDuplicateText(place.address);
+
+      if (nameKey) {
+        if (!byName.has(nameKey)) byName.set(nameKey, []);
+        byName.get(nameKey).push(index);
+      }
+
+      if (addressKey) {
+        if (!byAddress.has(addressKey)) byAddress.set(addressKey, []);
+        byAddress.get(addressKey).push(index);
+      }
+    });
+
+    const duplicateIndexes = new Set();
+
+    [byName, byAddress].forEach(groupMap => {
+      groupMap.forEach(indexes => {
+        if (indexes.length > 1) {
+          indexes.forEach(index => duplicateIndexes.add(index));
+        }
+      });
+    });
+
+    return duplicateIndexes;
+  }
+
+  function updateDuplicatesButton() {
+    const button = document.getElementById('adminMapFindDuplicatesButton');
+    if (!button) return;
+
+    const duplicateIndexes = getDuplicatePlaceIndexes();
+    const duplicateCount = duplicateIndexes.size;
+
+    if (adminMapShowOnlyDuplicates) {
+      button.textContent = `Zobrazit vše (${duplicateCount} duplicitních)`;
+      button.classList.add('active');
+    } else {
+      button.textContent = duplicateCount ? `Najít duplicity (${duplicateCount})` : 'Najít duplicity';
+      button.classList.remove('active');
+    }
+  }
 
   function renderCheckedPlacesTable() {
     const tableBody = document.getElementById('adminMapCheckedTableBody');
@@ -1790,9 +1897,12 @@
     const activeFilters = Array.from(document.querySelectorAll('.adminMapFilter:checked'))
       .map(input => input.value);
 
+    const duplicateIndexes = getDuplicatePlaceIndexes();
+
     const visiblePlaces = places
       .map((place, index) => ({ place, index }))
       .filter(item => shouldShowPlace(item.place, activeFilters))
+      .filter(item => !adminMapShowOnlyDuplicates || duplicateIndexes.has(item.index))
       .sort((a, b) => {
         const nameA = String(a.place.name || '').localeCompare(String(b.place.name || ''), 'cs', {
           sensitivity: 'base',
@@ -1804,12 +1914,16 @@
     const checkedCount = visiblePlaces.filter(item => getPlaceCheckedValue(item.place)).length;
 
     if (countBox) {
-      if (activeFilters.length) {
+      if (adminMapShowOnlyDuplicates) {
+        countBox.textContent = `${visiblePlaces.length} duplicitních míst`;
+      } else if (activeFilters.length) {
         countBox.textContent = `${checkedCount} / ${visiblePlaces.length} zkontrolováno ve filtru`;
       } else {
         countBox.textContent = `${checkedCount} / ${places.length} zkontrolováno`;
       }
     }
+
+    updateDuplicatesButton();
 
     const sortIcon = document.getElementById('adminMapCheckedSortIcon');
     if (sortIcon) {
@@ -1831,7 +1945,9 @@
       const row = document.createElement('tr');
       const cell = document.createElement('td');
       cell.colSpan = 2;
-      cell.textContent = 'Pro vybraný filtr nejsou žádná místa.';
+      cell.textContent = adminMapShowOnlyDuplicates
+        ? 'Nebyly nalezeny žádné duplicitní body pro aktuální filtr.'
+        : 'Pro vybraný filtr nejsou žádná místa.';
       row.appendChild(cell);
       tableBody.appendChild(row);
       return;
@@ -1840,10 +1956,22 @@
     visiblePlaces.forEach(({ place, index }) => {
       const row = document.createElement('tr');
       row.className = 'admin-map-check-table-row';
+      row.dataset.placeIndex = String(index);
+
+      if (duplicateIndexes.has(index)) {
+        row.classList.add('admin-map-duplicate-row');
+      }
 
       const nameCell = document.createElement('td');
       nameCell.className = 'place-name-cell';
       nameCell.textContent = place.name || 'Bez názvu';
+
+      if (duplicateIndexes.has(index)) {
+        const badge = document.createElement('span');
+        badge.className = 'admin-map-duplicate-badge';
+        badge.textContent = 'duplicita';
+        nameCell.appendChild(badge);
+      }
 
       const checkCell = document.createElement('td');
       checkCell.className = 'check-cell';
@@ -2523,6 +2651,30 @@ async function updatePlaceCheckedInSupabase(index, checked) {
     });
   }
 
+  const adminMapFindDuplicatesButton = document.getElementById('adminMapFindDuplicatesButton');
+  if (adminMapFindDuplicatesButton) {
+    adminMapFindDuplicatesButton.addEventListener('click', function() {
+      const duplicateIndexes = getDuplicatePlaceIndexes();
+
+      if (!duplicateIndexes.size) {
+        adminMapShowOnlyDuplicates = false;
+        renderCheckedPlacesTable();
+        alert('Nebyly nalezeny žádné duplicitní body.');
+        return;
+      }
+
+      adminMapShowOnlyDuplicates = !adminMapShowOnlyDuplicates;
+      renderCheckedPlacesTable();
+
+      if (adminMapShowOnlyDuplicates) {
+        document.querySelector('.admin-map-check-table-section')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    });
+  }
+
   loadPlacesFromSupabase();
 </script>
 
@@ -2580,33 +2732,3 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
-
-/* === DUPLICITY === */
-document.addEventListener('DOMContentLoaded',()=>{
-  const c=document.querySelector('#adminMapCheckedCount');
-  if(c && !document.getElementById('adminMapFindDuplicatesButton')){
-    const b=document.createElement('button');
-    b.id='adminMapFindDuplicatesButton';
-    b.type='button';
-    b.textContent='Najít duplicity';
-    b.style.marginLeft='12px';
-    c.parentNode.appendChild(b);
-    b.addEventListener('click',()=>{
-      const keys=new Map();
-      places.forEach((p,i)=>{
-        const k=((p.name||'').trim()+'|'+(p.address||'').trim()).toLowerCase();
-        (keys.get(k)||keys.set(k,[]).get(k)).push(i);
-      });
-      document.querySelectorAll('.admin-map-check-table tbody tr').forEach(r=>r.style.background='');
-      const dup=[...keys.values()].filter(v=>v.length>1);
-      if(!dup.length){alert('Nebyly nalezeny duplicity.');return;}
-      const rows=[...document.querySelectorAll('.admin-map-check-table tbody tr')];
-      dup.flat().forEach(i=>{
-        const n=places[i].name||'';
-        const row=rows.find(r=>r.innerText.includes(n));
-        if(row) row.style.background='#ffd6d6';
-      });
-      alert('Duplicitní záznamy byly zvýrazněny.');
-    });
-  }
-});
