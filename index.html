@@ -678,6 +678,18 @@
   .gmap-warn{color:#8a5a00;font-weight:700}
   .gmap-miss{color:#9b1c1c;font-weight:700}
 
+  .gmap-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end}
+  .gmap-actions button{white-space:nowrap}
+  .gmap-actions button.gmap-danger{background:#fff5f5;color:#9b1c1c;border-color:#f0b4b4}
+  .gmap-actions button.gmap-danger:hover{background:#ffecec}
+  .gmap-row-error{background:#fffafa}
+  .gmap-detail{font-size:13px;color:#5f6b76;line-height:1.45;max-width:360px}
+  .gmap-pill{display:inline-block;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:700}
+  .gmap-pill-ok{background:#e8f5e9;color:#2e7d32;border:1px solid #b9dfbd}
+  .gmap-pill-warn{background:#fff7e6;color:#8a5a00;border:1px solid #f0c36d}
+  .gmap-pill-miss{background:#ffecec;color:#9b1c1c;border:1px solid #f0b4b4}
+  .gmap-table input[type="checkbox"]{width:17px;height:17px;min-height:unset;accent-color:#2e7d32}
+
 
 
   #adminMap {
@@ -1278,10 +1290,12 @@
   <div class="gmap-check-head">
     <div>
       <h2>Kontrola podle Google My Maps</h2>
-      <p>Nahraj KML soubor výdejních míst a porovnej ho s aktuální administrací.</p>
+      <p>Nahraj KML soubor výdejních míst a porovnej ho s aktuální administrací včetně telefonu, e-mailu, otevírací doby a služeb.</p>
     </div>
-    <div>
+    <div class="gmap-actions">
       <button type="button" id="gmapKmlButton">Načíst KML</button>
+      <button type="button" id="gmapOnlyErrorsButton">Zobrazit pouze chyby</button>
+      <button type="button" class="gmap-danger" id="gmapRepairButton">Opravit podle KML</button>
       <input type="file" id="gmapKmlInput" accept=".kml,.xml">
     </div>
   </div>
@@ -1290,15 +1304,21 @@
     <table class="gmap-table">
       <thead>
         <tr>
+          <th>Opravit</th>
           <th>Stav</th>
-          <th>Název z Google</th>
-          <th>Nejbližší bod v administraci</th>
-          <th>Vzdálenost</th>
-          <th>Poznámka</th>
+          <th>Název</th>
+          <th>GPS</th>
+          <th>Adresa</th>
+          <th>Telefon</th>
+          <th>E-mail</th>
+          <th>Otevírací doba</th>
+          <th>Služby</th>
+          <th>Web</th>
+          <th>Detail</th>
         </tr>
       </thead>
       <tbody id="gmapReportBody">
-        <tr><td colspan="5">Klikni na „Načíst KML“ a vyber export z Google My Maps.</td></tr>
+        <tr><td colspan="11">Klikni na „Načíst KML“ a vyber export z Google My Maps.</td></tr>
       </tbody>
     </table>
   </div>
@@ -2723,8 +2743,41 @@ async function updatePlaceCheckedInSupabase(index, checked) {
   }
 
 
+  
+function gmapEscape(v){
+    return String(v ?? '').replace(/[&<>"']/g, s => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[s]));
+  }
+
   function gmapNorm(v){
-    return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim();
+    return String(v||'')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^\w\s@:+./-]/g,' ')
+      .replace(/\s+/g,' ')
+      .trim();
+  }
+
+  function gmapPhoneNorm(v){
+    return String(v||'').replace(/[^\d+]/g,'').replace(/^00/,'+');
+  }
+
+  function gmapEmailNorm(v){
+    return String(v||'').toLowerCase().trim();
+  }
+
+  function gmapWebNorm(v){
+    return String(v||'').toLowerCase().trim()
+      .replace(/^https?:\/\//,'')
+      .replace(/^www\./,'')
+      .replace(/\/$/,'');
+  }
+
+  function gmapStatus(ok, hasValue=true){
+    if(!hasValue) return '<span class="gmap-pill gmap-pill-warn">-</span>';
+    return ok ? '<span class="gmap-pill gmap-pill-ok">✅</span>' : '<span class="gmap-pill gmap-pill-miss">❌</span>';
   }
 
   function gmapDist(a,b,c,d){
@@ -2734,26 +2787,164 @@ async function updatePlaceCheckedInSupabase(index, checked) {
     return R*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s));
   }
 
+  function gmapDataValue(placemark, name){
+    const wanted = gmapNorm(name);
+    const dataNodes = Array.from(placemark.querySelectorAll('ExtendedData Data'));
+    const node = dataNodes.find(d => gmapNorm(d.getAttribute('name')) === wanted);
+    const valueNode = node ? node.querySelector('value') : null;
+    return valueNode ? valueNode.textContent.trim() : '';
+  }
+
+  function gmapExtractContact(contactText){
+    const lines = String(contactText||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    const emailMatch = contactText.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+    const webMatch = contactText.match(/https?:\/\/[^\s<]+|www\.[^\s<]+/i);
+    const phoneMatch = contactText.match(/(\+?\d[\d\s]{7,}\d)/);
+
+    const email = emailMatch ? emailMatch[0] : '';
+    const website = webMatch ? webMatch[0] : '';
+    const phone = phoneMatch ? phoneMatch[0] : '';
+
+    const address = lines.filter(line => {
+      return line !== email &&
+        line !== website &&
+        line !== phone &&
+        !/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(line) &&
+        !/https?:\/\/|www\./i.test(line) &&
+        !/^\+?\d[\d\s]{7,}\d$/.test(line);
+    }).join(' ');
+
+    return { address, phone, email, website };
+  }
+
+  function gmapParseServices(serviceText){
+    const text = gmapNorm(serviceText);
+    const services = [];
+    const products = [
+      { key:'teras', label:'teras Lambodeck' },
+      { key:'plot', label:'plotů Lambofence' },
+      { key:'fasad', label:'fasád Lambofacade' },
+      { key:'lavick', label:'laviček Lambobench' }
+    ];
+
+    products.forEach(product => {
+      if(!text.includes(product.key)) return;
+      const hasSale = text.includes('prodej');
+      const hasInstall = text.includes('montaz');
+      if(hasSale && hasInstall) services.push('Prodej a montáž ' + product.label);
+      else if(hasSale) services.push('Prodej ' + product.label);
+      else if(hasInstall) services.push('Montáž ' + product.label);
+    });
+
+    return services;
+  }
+
+  function gmapServicesNorm(value){
+    const raw = Array.isArray(value) ? value.join(' ') : String(value||'');
+    const text = gmapNorm(raw);
+    const tokens = [];
+    ['lambodeck','lambofence','lambofacade','lambobench','teras','plot','fasad','lavick','prodej','montaz'].forEach(t=>{
+      if(text.includes(t)) tokens.push(t);
+    });
+    return tokens.sort().join('|');
+  }
+
+  function gmapOpeningToText(openingHours){
+    if(!openingHours || typeof openingHours !== 'object') return '';
+    const map = [
+      ['monday','Po'], ['tuesday','Út'], ['wednesday','St'], ['thursday','Čt'],
+      ['friday','Pá'], ['saturday','So'], ['sunday','Ne']
+    ];
+
+    return map.map(([key,label])=>{
+      const item = openingHours[key] || {};
+      if(item.phone) return label + ': Po telefonické dohodě';
+      if(item.closed) return label + ': Zavřeno';
+      if(item.from && item.to) return label + ': ' + item.from + '-' + item.to;
+      return label + ':';
+    }).join('\n');
+  }
+
+  function gmapParseOpeningHours(text){
+    const out = {};
+    const dayMap = {
+      'po':'monday','pondeli':'monday',
+      'ut':'tuesday','utery':'tuesday',
+      'st':'wednesday','streda':'wednesday',
+      'ct':'thursday','ctvrtek':'thursday',
+      'pa':'friday','patek':'friday',
+      'so':'saturday','sobota':'saturday',
+      'ne':'sunday','nedele':'sunday'
+    };
+
+    String(text||'').split(/\r?\n/).forEach(line=>{
+      const parts = line.split(':');
+      if(parts.length < 2) return;
+
+      const dayRaw = gmapNorm(parts.shift());
+      const key = dayMap[dayRaw];
+      if(!key) return;
+
+      const value = parts.join(':').trim();
+      const norm = gmapNorm(value);
+
+      if(norm.includes('zavreno')) {
+        out[key] = { from:'08:00', to:'16:00', closed:true, phone:false };
+        return;
+      }
+
+      if(norm.includes('telefon')) {
+        out[key] = { from:'08:00', to:'16:00', closed:false, phone:true };
+        return;
+      }
+
+      const match = value.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
+      if(match) {
+        out[key] = { from:match[1], to:match[2], closed:false, phone:false };
+      }
+    });
+
+    return out;
+  }
+
   function gmapParseKml(txt){
     const xml=new DOMParser().parseFromString(txt,'text/xml');
     if(xml.querySelector('parsererror')) throw new Error('Neplatný KML soubor.');
+
     return Array.from(xml.querySelectorAll('Placemark')).map(p=>{
       const n=p.querySelector('name');
       const c=p.querySelector('Point coordinates')||p.querySelector('coordinates');
+
       let lat=null,lng=null;
       if(c&&c.textContent.trim()){
         const parts=c.textContent.trim().split(/\s+/)[0].split(',').map(Number);
         lng=Number.isFinite(parts[0])?parts[0]:null;
         lat=Number.isFinite(parts[1])?parts[1]:null;
       }
-      return {name:n?n.textContent.trim():'Bez názvu',lat,lng};
+
+      const contact = gmapExtractContact(gmapDataValue(p,'adresa a kontakt'));
+      const servicesText = gmapDataValue(p,'popis');
+      const openingText = gmapDataValue(p,'otevírací doba');
+
+      return {
+        name:n?n.textContent.trim():'Bez názvu',
+        lat,lng,
+        address:contact.address,
+        phone:contact.phone,
+        email:contact.email,
+        website:contact.website,
+        servicesText,
+        services:gmapParseServices(servicesText),
+        openingText,
+        openingHours:gmapParseOpeningHours(openingText)
+      };
     }).filter(p=>p.name&&p.lat!==null&&p.lng!==null);
   }
 
   function gmapBest(g){
     const gn=gmapNorm(g.name);
     let best=null;
-    places.forEach(p=>{
+    places.forEach((p,index)=>{
       const pn=gmapNorm(p.name);
       const nameMatch=pn===gn||pn.includes(gn)||gn.includes(pn);
       let dist=Infinity;
@@ -2761,35 +2952,187 @@ async function updatePlaceCheckedInSupabase(index, checked) {
         dist=gmapDist(g.lat,g.lng,Number(p.lat),Number(p.lng));
       }
       const score=nameMatch?0:dist;
-      if(!best||score<best.score||dist<best.dist) best={p,nameMatch,dist,score};
+      if(!best||score<best.score||dist<best.dist) best={p,index,nameMatch,dist,score};
     });
     return best;
   }
+
+  function gmapCompare(g,b){
+    const p = b ? b.p : null;
+
+    if(!p) {
+      return {
+        ok:false,
+        canFix:false,
+        checks:{gps:false,address:false,phone:false,email:false,opening:false,services:false,website:false},
+        details:['Nenalezen odpovídající bod v administraci.'],
+        patch:null
+      };
+    }
+
+    const gpsOk = Number.isFinite(b.dist) && b.dist <= 25;
+    const addressOk = !g.address || gmapNorm(p.address) === gmapNorm(g.address);
+    const phoneOk = !g.phone || gmapPhoneNorm(p.phone) === gmapPhoneNorm(g.phone);
+    const emailOk = !g.email || gmapEmailNorm(p.email) === gmapEmailNorm(g.email);
+    const websiteOk = !g.website || gmapWebNorm(p.website) === gmapWebNorm(g.website);
+    const openingOk = !g.openingText || gmapNorm(gmapOpeningToText(p.openingHours)) === gmapNorm(g.openingText);
+    const servicesOk = !g.servicesText || gmapServicesNorm(p.services) === gmapServicesNorm(g.servicesText);
+
+    const details = [];
+
+    function addDiff(label, googleValue, adminValue) {
+      details.push(
+        '<strong>'+gmapEscape(label)+'</strong><br>' +
+        'Google: '+gmapEscape(googleValue || '-')+'<br>' +
+        'Administrace: '+gmapEscape(adminValue || '-') 
+      );
+    }
+
+    if(!gpsOk) addDiff('GPS', Math.round(b.dist)+' m rozdíl', 'souřadnice bodu v administraci');
+    if(!addressOk) addDiff('Adresa', g.address, p.address);
+    if(!phoneOk) addDiff('Telefon', g.phone, p.phone);
+    if(!emailOk) addDiff('E-mail', g.email, p.email);
+    if(!openingOk) addDiff('Otevírací doba', g.openingText, gmapOpeningToText(p.openingHours));
+    if(!servicesOk) addDiff('Služby', g.servicesText, Array.isArray(p.services) ? p.services.join('\\n') : p.services);
+    if(!websiteOk) addDiff('Web', g.website, p.website);
+
+    const patch = {
+      ...p,
+      address: g.address || p.address,
+      phone: g.phone || p.phone,
+      email: g.email || p.email,
+      website: g.website || p.website,
+      openingHours: Object.keys(g.openingHours || {}).length ? g.openingHours : p.openingHours,
+      services: Array.isArray(g.services) && g.services.length ? g.services : p.services
+    };
+
+    return {
+      ok:gpsOk && addressOk && phoneOk && emailOk && openingOk && servicesOk && websiteOk,
+      canFix:true,
+      checks:{gps:gpsOk,address:addressOk,phone:phoneOk,email:emailOk,opening:openingOk,services:servicesOk,website:websiteOk},
+      details,
+      patch
+    };
+  }
+
+  let gmapLastRows = [];
+  let gmapOnlyErrors = false;
 
   function gmapReport(list){
     const body=document.getElementById('gmapReportBody');
     const stats=document.getElementById('gmapStats');
     if(!body)return;
-    body.innerHTML='';
-    let ok=0,miss=0,warn=0;
-    list.forEach(g=>{
+
+    gmapLastRows = list.map((g,rowIndex)=>{
       const b=gmapBest(g);
-      let cls='gmap-miss',st='❌ Chybí',adm='-',dst='-',note='Nenalezeno v administraci.';
-      if(b&&(b.nameMatch||b.dist<=100)){
-        adm=b.p.name||'Bez názvu';
-        dst=Number.isFinite(b.dist)?Math.round(b.dist)+' m':'-';
-        if(b.dist>25){warn++;cls='gmap-warn';st='⚠️ GPS rozdíl';note='Bod existuje, ale GPS se liší o více než 25 m.';}
-        else{ok++;cls='gmap-ok';st='✅ OK';note='Bod pravděpodobně odpovídá.';}
-      }else miss++;
+      const compare=gmapCompare(g,b);
+      return { g, b, compare, rowIndex };
+    });
+
+    gmapRenderRows();
+
+    const total = gmapLastRows.length;
+    const ok = gmapLastRows.filter(r=>r.compare.ok).length;
+    const errors = total - ok;
+    const missing = gmapLastRows.filter(r=>!r.b || !(r.b.nameMatch || r.b.dist <= 100)).length;
+
+    if(stats) stats.textContent = 'KML: '+total+' | V pořádku: '+ok+' | S chybou: '+errors+' | Chybí v administraci: '+missing;
+  }
+
+  function gmapRenderRows(){
+    const body=document.getElementById('gmapReportBody');
+    if(!body)return;
+    body.innerHTML='';
+
+    const rows = gmapOnlyErrors ? gmapLastRows.filter(r=>!r.compare.ok) : gmapLastRows;
+
+    if(!rows.length){
+      body.innerHTML='<tr><td colspan="11">Žádné řádky k zobrazení.</td></tr>';
+      return;
+    }
+
+    rows.forEach(row=>{
+      const g=row.g, b=row.b, c=row.compare;
+      const matched = b && (b.nameMatch || b.dist <= 100);
       const tr=document.createElement('tr');
-      tr.innerHTML='<td class="'+cls+'">'+st+'</td><td>'+g.name+'</td><td>'+adm+'</td><td>'+dst+'</td><td>'+note+'</td>';
+      if(!c.ok) tr.className='gmap-row-error';
+
+      const detail = c.details.length ? c.details.join('<hr style="border:0;border-top:1px solid #edf0f2;margin:6px 0;">') : 'Bez rozdílů.';
+      const distanceText = b && Number.isFinite(b.dist) ? Math.round(b.dist)+' m' : '-';
+      const status = !matched ? '<span class="gmap-miss">❌ Chybí</span>' : (c.ok ? '<span class="gmap-ok">✅ OK</span>' : '<span class="gmap-warn">⚠️ Rozdíl</span>');
+
+      tr.innerHTML =
+        '<td>'+(c.canFix && !c.ok && matched ? '<input type="checkbox" class="gmapFixCheck" data-row="'+row.rowIndex+'" checked>' : '')+'</td>' +
+        '<td>'+status+'</td>' +
+        '<td><strong>'+gmapEscape(g.name)+'</strong><br><span class="gmap-detail">Admin: '+gmapEscape(matched ? b.p.name : '-')+'</span></td>' +
+        '<td>'+gmapStatus(c.checks.gps, matched)+'<br><span class="gmap-detail">'+gmapEscape(distanceText)+'</span></td>' +
+        '<td>'+gmapStatus(c.checks.address, !!g.address && matched)+'</td>' +
+        '<td>'+gmapStatus(c.checks.phone, !!g.phone && matched)+'</td>' +
+        '<td>'+gmapStatus(c.checks.email, !!g.email && matched)+'</td>' +
+        '<td>'+gmapStatus(c.checks.opening, !!g.openingText && matched)+'</td>' +
+        '<td>'+gmapStatus(c.checks.services, !!g.servicesText && matched)+'</td>' +
+        '<td>'+gmapStatus(c.checks.website, !!g.website && matched)+'</td>' +
+        '<td><div class="gmap-detail">'+detail+'</div></td>';
+
       body.appendChild(tr);
     });
-    if(stats)stats.textContent='KML: '+list.length+' | OK: '+ok+' | Chybí: '+miss+' | GPS rozdíl: '+warn;
+  }
+
+  async function gmapRepairSelected(){
+    const checks = Array.from(document.querySelectorAll('.gmapFixCheck:checked'));
+    if(!checks.length){
+      alert('Není vybraný žádný řádek k opravě.');
+      return;
+    }
+
+    if(!confirm('Opravdu chceš vybrané řádky přepsat podle KML souboru?')) return;
+
+    let done = 0;
+    let failed = 0;
+
+    for(const checkbox of checks){
+      const rowIndex = Number(checkbox.dataset.row);
+      const row = gmapLastRows.find(r=>r.rowIndex === rowIndex);
+      if(!row || !row.compare.patch) continue;
+
+      try{
+        const updated = await updatePlaceInSupabase(row.compare.patch);
+        if(row.b && Number.isInteger(row.b.index)) places[row.b.index] = updated;
+        done++;
+      }catch(error){
+        console.error(error);
+        failed++;
+      }
+    }
+
+    renderMarkers();
+    renderCheckedPlacesTable();
+
+    if(gmapLastRows.length){
+      const originalGoogleRows = gmapLastRows.map(r=>r.g);
+      gmapReport(originalGoogleRows);
+    }
+
+    alert('Opraveno: '+done+(failed ? ' | Chyby: '+failed : ''));
   }
 
   const gmapBtn=document.getElementById('gmapKmlButton');
   const gmapInput=document.getElementById('gmapKmlInput');
+  const gmapOnlyErrorsBtn=document.getElementById('gmapOnlyErrorsButton');
+  const gmapRepairBtn=document.getElementById('gmapRepairButton');
+
+  if(gmapOnlyErrorsBtn){
+    gmapOnlyErrorsBtn.addEventListener('click',()=>{
+      gmapOnlyErrors = !gmapOnlyErrors;
+      gmapOnlyErrorsBtn.textContent = gmapOnlyErrors ? 'Zobrazit vše' : 'Zobrazit pouze chyby';
+      gmapRenderRows();
+    });
+  }
+
+  if(gmapRepairBtn){
+    gmapRepairBtn.addEventListener('click',gmapRepairSelected);
+  }
+
   if(gmapBtn&&gmapInput){
     gmapBtn.addEventListener('click',()=>gmapInput.click());
     gmapInput.addEventListener('change',function(){
