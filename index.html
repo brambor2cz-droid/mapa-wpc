@@ -2580,3 +2580,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
+/* === DUPLICITY === */
+document.addEventListener('DOMContentLoaded',()=>{
+  const c=document.querySelector('#adminMapCheckedCount');
+  if(c && !document.getElementById('adminMapFindDuplicatesButton')){
+    const b=document.createElement('button');
+    b.id='adminMapFindDuplicatesButton';
+    b.type='button';
+    b.textContent='Najít duplicity';
+    b.style.marginLeft='12px';
+    c.parentNode.appendChild(b);
+    b.addEventListener('click',()=>{
+      const keys=new Map();
+      places.forEach((p,i)=>{
+        const k=((p.name||'').trim()+'|'+(p.address||'').trim()).toLowerCase();
+        (keys.get(k)||keys.set(k,[]).get(k)).push(i);
+      });
+      document.querySelectorAll('.admin-map-check-table tbody tr').forEach(r=>r.style.background='');
+      const dup=[...keys.values()].filter(v=>v.length>1);
+      if(!dup.length){alert('Nebyly nalezeny duplicity.');return;}
+      const rows=[...document.querySelectorAll('.admin-map-check-table tbody tr')];
+      dup.flat().forEach(i=>{
+        const n=places[i].name||'';
+        const row=rows.find(r=>r.innerText.includes(n));
+        if(row) row.style.background='#ffd6d6';
+      });
+      alert('Duplicitní záznamy byly zvýrazněny.');
+    });
+  }
+});
