@@ -663,147 +663,20 @@
   }
 
 
-  .admin-map-google-report-section {
-    width: min(1400px, calc(100% - 32px));
-    margin: -16px auto 32px;
-    border: 1px solid #d9dee3;
-    border-radius: 14px;
-    background: #ffffff;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
-    overflow: hidden;
-  }
-
-  .admin-map-google-report-header {
-    padding: 18px 20px;
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    align-items: center;
-    border-bottom: 1px solid #e5e9ed;
-    background: #f8fafc;
-  }
-
-  .admin-map-google-report-header h2 {
-    margin: 0 0 4px;
-    font-size: 20px;
-    color: #1f2933;
-  }
-
-  .admin-map-google-report-header p {
-    margin: 0;
-    color: #5f6b76;
-    font-size: 14px;
-  }
-
-  .admin-map-google-report-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .admin-map-google-upload-button {
-    background: #eef6ff;
-    color: #0b5394;
-    border-color: #b8d7f4;
-    font-weight: 700;
-  }
-
-  .admin-map-google-upload-button:hover {
-    background: #dceeff;
-  }
-
-  #adminMapGoogleKmlInput {
-    display: none;
-  }
-
-  .admin-map-google-report-summary {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(140px, 1fr));
-    gap: 12px;
-    padding: 16px 20px;
-    border-bottom: 1px solid #e5e9ed;
-  }
-
-  .admin-map-google-report-card {
-    background: #f8fafc;
-    border: 1px solid #e5e9ed;
-    border-radius: 12px;
-    padding: 12px;
-  }
-
-  .admin-map-google-report-card strong {
-    display: block;
-    font-size: 22px;
-    margin-bottom: 3px;
-  }
-
-  .admin-map-google-report-card span {
-    color: #5f6b76;
-    font-size: 13px;
-  }
-
-  .admin-map-google-report-wrapper {
-    width: 100%;
-    overflow-x: auto;
-  }
-
-  .admin-map-google-report-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .admin-map-google-report-table th,
-  .admin-map-google-report-table td {
-    padding: 12px 16px;
-    border-bottom: 1px solid #edf0f2;
-    text-align: left;
-    vertical-align: top;
-    font-size: 14px;
-  }
-
-  .admin-map-google-report-table th {
-    background: #ffffff;
-    color: #1f2933;
-    font-weight: 700;
-  }
-
-  .admin-map-google-report-table tbody tr:hover {
-    background: #eef6ee;
-  }
-
-  .admin-map-google-status-ok {
-    color: #2e7d32;
-    font-weight: 700;
-  }
-
-  .admin-map-google-status-warning {
-    color: #8a5a00;
-    font-weight: 700;
-  }
-
-  .admin-map-google-status-missing {
-    color: #9b1c1c;
-    font-weight: 700;
-  }
-
-  .admin-map-google-helper {
-    padding: 14px 20px;
-    color: #5f6b76;
-    font-size: 14px;
-  }
-
-  @media (max-width: 760px) {
-    .admin-map-google-report-header {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .admin-map-google-report-summary {
-      grid-template-columns: repeat(2, minmax(140px, 1fr));
-    }
-  }
+  .gmap-check-box{width:min(1400px,calc(100% - 32px));margin:-16px auto 32px;border:1px solid #d9dee3;border-radius:14px;background:#fff;overflow:hidden}
+  .gmap-check-head{padding:16px 20px;background:#f8fafc;border-bottom:1px solid #e5e9ed;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+  .gmap-check-head h2{margin:0 0 4px;font-size:20px}
+  .gmap-check-head p{margin:0;color:#5f6b76;font-size:14px}
+  .gmap-check-head button{background:#eef6ff;color:#0b5394;border-color:#b8d7f4;font-weight:700}
+  #gmapKmlInput{display:none}
+  .gmap-stats{padding:12px 20px;border-bottom:1px solid #e5e9ed;color:#1f2933;font-weight:700}
+  .gmap-table-wrap{overflow-x:auto}
+  .gmap-table{width:100%;border-collapse:collapse}
+  .gmap-table th,.gmap-table td{padding:10px 14px;border-bottom:1px solid #edf0f2;text-align:left;font-size:14px;vertical-align:top}
+  .gmap-table tbody tr:hover{background:#eef6ee}
+  .gmap-ok{color:#2e7d32;font-weight:700}
+  .gmap-warn{color:#8a5a00;font-weight:700}
+  .gmap-miss{color:#9b1c1c;font-weight:700}
 
 
 
@@ -1401,45 +1274,31 @@
     </table>
   </div>
 </section>
-
-<section class="admin-map-google-report-section" id="adminMapGoogleReportSection">
-  <div class="admin-map-google-report-header">
+<section class="gmap-check-box" id="gmapCheckBox">
+  <div class="gmap-check-head">
     <div>
       <h2>Kontrola podle Google My Maps</h2>
-      <p>Nahraj KML export výdejních míst a porovnej ho s aktuálními body v administraci.</p>
+      <p>Nahraj KML soubor výdejních míst a porovnej ho s aktuální administrací.</p>
     </div>
-    <div class="admin-map-google-report-actions">
-      <button type="button" class="admin-map-google-upload-button" id="adminMapGoogleKmlButton">Načíst KML</button>
-      <input type="file" id="adminMapGoogleKmlInput" accept=".kml,.xml">
+    <div>
+      <button type="button" id="gmapKmlButton">Načíst KML</button>
+      <input type="file" id="gmapKmlInput" accept=".kml,.xml">
     </div>
   </div>
-
-  <div class="admin-map-google-report-summary" id="adminMapGoogleReportSummary">
-    <div class="admin-map-google-report-card"><strong>-</strong><span>Bodů v KML</span></div>
-    <div class="admin-map-google-report-card"><strong>-</strong><span>Nalezeno v administraci</span></div>
-    <div class="admin-map-google-report-card"><strong>-</strong><span>Chybí v administraci</span></div>
-    <div class="admin-map-google-report-card"><strong>-</strong><span>Možné rozdíly GPS</span></div>
-  </div>
-
-  <div class="admin-map-google-helper" id="adminMapGoogleReportHelper">
-    Klikni na „Načíst KML“ a vyber export z Google My Maps.
-  </div>
-
-  <div class="admin-map-google-report-wrapper">
-    <table class="admin-map-google-report-table">
+  <div class="gmap-stats" id="gmapStats">Zatím není načtený žádný KML soubor.</div>
+  <div class="gmap-table-wrap">
+    <table class="gmap-table">
       <thead>
         <tr>
           <th>Stav</th>
-          <th>Název v Google My Maps</th>
+          <th>Název z Google</th>
           <th>Nejbližší bod v administraci</th>
           <th>Vzdálenost</th>
           <th>Poznámka</th>
         </tr>
       </thead>
-      <tbody id="adminMapGoogleReportBody">
-        <tr>
-          <td colspan="5">Zatím není načtený žádný KML soubor.</td>
-        </tr>
+      <tbody id="gmapReportBody">
+        <tr><td colspan="5">Klikni na „Načíst KML“ a vyber export z Google My Maps.</td></tr>
       </tbody>
     </table>
   </div>
@@ -2864,202 +2723,84 @@ async function updatePlaceCheckedInSupabase(index, checked) {
   }
 
 
-  function normalizeGoogleReportText(value) {
-    return String(value || '')
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[.,;:()\[\]{}"']/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+  function gmapNorm(v){
+    return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim();
   }
 
-  function parseGoogleMyMapsKml(kmlText) {
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(kmlText, 'text/xml');
-
-    if (xml.querySelector('parsererror')) {
-      throw new Error('KML soubor se nepodařilo načíst.');
-    }
-
-    return Array.from(xml.querySelectorAll('Placemark')).map(placemark => {
-      const nameNode = placemark.querySelector('name');
-      const descriptionNode = placemark.querySelector('description');
-      const coordinatesNode = placemark.querySelector('Point coordinates') || placemark.querySelector('coordinates');
-
-      const name = nameNode ? nameNode.textContent.trim() : 'Bez názvu';
-      const description = descriptionNode ? descriptionNode.textContent.trim() : '';
-
-      let lat = null;
-      let lng = null;
-
-      if (coordinatesNode && coordinatesNode.textContent.trim()) {
-        const firstCoordinate = coordinatesNode.textContent.trim().split(/\s+/)[0];
-        const parts = firstCoordinate.split(',').map(Number);
-        lng = Number.isFinite(parts[0]) ? parts[0] : null;
-        lat = Number.isFinite(parts[1]) ? parts[1] : null;
-      }
-
-      return {
-        name,
-        description,
-        lat,
-        lng
-      };
-    }).filter(item => item.name && item.lat !== null && item.lng !== null);
+  function gmapDist(a,b,c,d){
+    const R=6371000,rad=x=>x*Math.PI/180;
+    const A=rad(c-a),B=rad(d-b);
+    const s=Math.sin(A/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(B/2)**2;
+    return R*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s));
   }
 
-  function getDistanceMeters(lat1, lng1, lat2, lng2) {
-    const earthRadius = 6371000;
-    const toRad = value => value * Math.PI / 180;
-    const dLat = toRad(lat2 - lat1);
-    const dLng = toRad(lng2 - lng1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  function gmapParseKml(txt){
+    const xml=new DOMParser().parseFromString(txt,'text/xml');
+    if(xml.querySelector('parsererror')) throw new Error('Neplatný KML soubor.');
+    return Array.from(xml.querySelectorAll('Placemark')).map(p=>{
+      const n=p.querySelector('name');
+      const c=p.querySelector('Point coordinates')||p.querySelector('coordinates');
+      let lat=null,lng=null;
+      if(c&&c.textContent.trim()){
+        const parts=c.textContent.trim().split(/\s+/)[0].split(',').map(Number);
+        lng=Number.isFinite(parts[0])?parts[0]:null;
+        lat=Number.isFinite(parts[1])?parts[1]:null;
+      }
+      return {name:n?n.textContent.trim():'Bez názvu',lat,lng};
+    }).filter(p=>p.name&&p.lat!==null&&p.lng!==null);
   }
 
-  function findBestAdminPlaceForGooglePlace(googlePlace) {
-    const normalizedGoogleName = normalizeGoogleReportText(googlePlace.name);
-    let best = null;
-
-    places.forEach(place => {
-      const normalizedAdminName = normalizeGoogleReportText(place.name);
-      const nameMatches =
-        normalizedAdminName === normalizedGoogleName ||
-        normalizedAdminName.includes(normalizedGoogleName) ||
-        normalizedGoogleName.includes(normalizedAdminName);
-
-      let distance = Infinity;
-
-      if (
-        Number.isFinite(Number(place.lat)) &&
-        Number.isFinite(Number(place.lng)) &&
-        Number.isFinite(Number(googlePlace.lat)) &&
-        Number.isFinite(Number(googlePlace.lng))
-      ) {
-        distance = getDistanceMeters(
-          Number(googlePlace.lat),
-          Number(googlePlace.lng),
-          Number(place.lat),
-          Number(place.lng)
-        );
+  function gmapBest(g){
+    const gn=gmapNorm(g.name);
+    let best=null;
+    places.forEach(p=>{
+      const pn=gmapNorm(p.name);
+      const nameMatch=pn===gn||pn.includes(gn)||gn.includes(pn);
+      let dist=Infinity;
+      if(Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))){
+        dist=gmapDist(g.lat,g.lng,Number(p.lat),Number(p.lng));
       }
-
-      let score = distance;
-
-      if (nameMatches) {
-        score = Math.min(score, 0);
-      }
-
-      if (!best || score < best.score || distance < best.distance) {
-        best = {
-          place,
-          nameMatches,
-          distance,
-          score
-        };
-      }
+      const score=nameMatch?0:dist;
+      if(!best||score<best.score||dist<best.dist) best={p,nameMatch,dist,score};
     });
-
     return best;
   }
 
-  function renderGoogleMyMapsReport(googlePlaces) {
-    const body = document.getElementById('adminMapGoogleReportBody');
-    const summary = document.getElementById('adminMapGoogleReportSummary');
-    const helper = document.getElementById('adminMapGoogleReportHelper');
-
-    if (!body) return;
-
-    body.innerHTML = '';
-
-    let found = 0;
-    let missing = 0;
-    let gpsWarnings = 0;
-
-    googlePlaces.forEach(googlePlace => {
-      const best = findBestAdminPlaceForGooglePlace(googlePlace);
-      const row = document.createElement('tr');
-
-      let statusText = '❌ Chybí';
-      let statusClass = 'admin-map-google-status-missing';
-      let adminName = '-';
-      let distanceText = '-';
-      let note = 'Nenalezen shodný nebo blízký bod v administraci.';
-
-      if (best && (best.nameMatches || best.distance <= 100)) {
-        found++;
-        adminName = best.place.name || 'Bez názvu';
-        distanceText = Number.isFinite(best.distance) ? `${Math.round(best.distance)} m` : '-';
-
-        if (best.distance > 25) {
-          gpsWarnings++;
-          statusText = '⚠️ Nalezeno';
-          statusClass = 'admin-map-google-status-warning';
-          note = 'Bod existuje, ale GPS se liší o více než 25 m.';
-        } else {
-          statusText = '✅ OK';
-          statusClass = 'admin-map-google-status-ok';
-          note = 'Bod pravděpodobně odpovídá.';
-        }
-      } else {
-        missing++;
-      }
-
-      row.innerHTML = `
-        <td class="${statusClass}">${statusText}</td>
-        <td>${googlePlace.name}</td>
-        <td>${adminName}</td>
-        <td>${distanceText}</td>
-        <td>${note}</td>
-      `;
-
-      body.appendChild(row);
+  function gmapReport(list){
+    const body=document.getElementById('gmapReportBody');
+    const stats=document.getElementById('gmapStats');
+    if(!body)return;
+    body.innerHTML='';
+    let ok=0,miss=0,warn=0;
+    list.forEach(g=>{
+      const b=gmapBest(g);
+      let cls='gmap-miss',st='❌ Chybí',adm='-',dst='-',note='Nenalezeno v administraci.';
+      if(b&&(b.nameMatch||b.dist<=100)){
+        adm=b.p.name||'Bez názvu';
+        dst=Number.isFinite(b.dist)?Math.round(b.dist)+' m':'-';
+        if(b.dist>25){warn++;cls='gmap-warn';st='⚠️ GPS rozdíl';note='Bod existuje, ale GPS se liší o více než 25 m.';}
+        else{ok++;cls='gmap-ok';st='✅ OK';note='Bod pravděpodobně odpovídá.';}
+      }else miss++;
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td class="'+cls+'">'+st+'</td><td>'+g.name+'</td><td>'+adm+'</td><td>'+dst+'</td><td>'+note+'</td>';
+      body.appendChild(tr);
     });
-
-    if (summary) {
-      summary.innerHTML = `
-        <div class="admin-map-google-report-card"><strong>${googlePlaces.length}</strong><span>Bodů v KML</span></div>
-        <div class="admin-map-google-report-card"><strong>${found}</strong><span>Nalezeno v administraci</span></div>
-        <div class="admin-map-google-report-card"><strong>${missing}</strong><span>Chybí v administraci</span></div>
-        <div class="admin-map-google-report-card"><strong>${gpsWarnings}</strong><span>Možné rozdíly GPS</span></div>
-      `;
-    }
-
-    if (helper) {
-      helper.textContent = 'Kontrola dokončena. Porovnání je podle názvu a GPS souřadnic. Tolerance pro GPS upozornění je 25 m.';
-    }
+    if(stats)stats.textContent='KML: '+list.length+' | OK: '+ok+' | Chybí: '+miss+' | GPS rozdíl: '+warn;
   }
 
-  const adminMapGoogleKmlButton = document.getElementById('adminMapGoogleKmlButton');
-  const adminMapGoogleKmlInput = document.getElementById('adminMapGoogleKmlInput');
-
-  if (adminMapGoogleKmlButton && adminMapGoogleKmlInput) {
-    adminMapGoogleKmlButton.addEventListener('click', function() {
-      adminMapGoogleKmlInput.click();
-    });
-
-    adminMapGoogleKmlInput.addEventListener('change', function() {
-      const file = this.files && this.files[0];
-
-      if (!file) return;
-
-      const reader = new FileReader();
-
-      reader.onload = function(event) {
-        try {
-          const googlePlaces = parseGoogleMyMapsKml(event.target.result);
-          renderGoogleMyMapsReport(googlePlaces);
-        } catch (error) {
-          alert('KML soubor se nepodařilo zpracovat: ' + (error.message || 'Neznámá chyba.'));
-          console.error(error);
-        }
+  const gmapBtn=document.getElementById('gmapKmlButton');
+  const gmapInput=document.getElementById('gmapKmlInput');
+  if(gmapBtn&&gmapInput){
+    gmapBtn.addEventListener('click',()=>gmapInput.click());
+    gmapInput.addEventListener('change',function(){
+      const file=this.files&&this.files[0];
+      if(!file)return;
+      const r=new FileReader();
+      r.onload=e=>{
+        try{gmapReport(gmapParseKml(e.target.result));}
+        catch(err){alert('KML se nepodařilo načíst: '+(err.message||'Neznámá chyba.'));}
       };
-
-      reader.readAsText(file, 'utf-8');
+      r.readAsText(file,'utf-8');
     });
   }
 
