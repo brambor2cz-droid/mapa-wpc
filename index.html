@@ -343,8 +343,27 @@
   .add-form > input,
   .add-form > button,
   .add-form > textarea,
-  .add-form > .dropdown {
+  .add-form > .dropdown,
+  .add-form > .phone-field {
     width: 100%;
+  }
+
+  .phone-field {
+    display: grid;
+    grid-template-columns: 155px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .phone-field select,
+  .phone-field input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  @media (max-width: 620px) {
+    .phone-field {
+      grid-template-columns: 1fr;
+    }
   }
 
   #adminMapPlaceAddress {
@@ -1098,7 +1117,13 @@
 <div class="add-form">
   <input type="text" id="adminMapPlaceName" placeholder="Název místa">
   <input type="text" id="adminMapPlaceAddress" placeholder="Adresa, např. Heřmanice v Podještědí 135">
-  <input type="text" id="adminMapPlacePhone" placeholder="Telefon, např. +420 777 123 456" inputmode="tel" maxlength="13">
+  <div class="phone-field">
+    <select id="adminMapPhonePrefix" aria-label="Telefonní předvolba">
+      <option value="+420" selected>🇨🇿 Česko +420</option>
+      <option value="+421">🇸🇰 Slovensko +421</option>
+    </select>
+    <input type="text" id="adminMapPlacePhone" placeholder="777 123 456" inputmode="tel" maxlength="11">
+  </div>
   <input type="email" id="adminMapPlaceEmail" placeholder="E-mail, např. info@firma.cz" pattern="^[^\s@]+@[^\s@]+\.[^\s@]+\.[^\s@]+$|^[^\s@]+@[^\s@]+\.[^\s@]+$">
   <input type="url" id="adminMapPlaceWebsite" placeholder="Web partnera, např. https://www.firma.cz">
   <textarea id="adminMapPlaceNote" placeholder="Poznámka k partnerovi"></textarea>
@@ -1774,7 +1799,21 @@
 
     document.getElementById('adminMapPlaceName').value = place.name || '';
     document.getElementById('adminMapPlaceAddress').value = place.address || '';
-    document.getElementById('adminMapPlacePhone').value = place.phone || '';
+    {
+      const phonePrefix = document.getElementById('adminMapPhonePrefix');
+      const phoneInput = document.getElementById('adminMapPlacePhone');
+      const rawPhone = String(place.phone || '').trim();
+      const digits = rawPhone.replace(/\D/g, '');
+
+      if (digits.startsWith('421')) {
+        phonePrefix.value = '+421';
+        phoneInput.value = digits.slice(3, 12).replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+      } else {
+        phonePrefix.value = '+420';
+        const localDigits = digits.startsWith('420') ? digits.slice(3, 12) : digits.slice(0, 9);
+        phoneInput.value = localDigits.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
+      }
+    }
     document.getElementById('adminMapPlaceEmail').value = place.email || '';
     document.getElementById('adminMapPlaceWebsite').value = place.website || '';
     document.getElementById('adminMapPlaceNote').value = place.note || '';
@@ -1810,6 +1849,7 @@
     document.getElementById('adminMapPlaceName').value = '';
     document.getElementById('adminMapPlaceAddress').value = '';
     document.getElementById('adminMapPlacePhone').value = '';
+    document.getElementById('adminMapPhonePrefix').value = '+420';
     document.getElementById('adminMapPlaceEmail').value = '';
     document.getElementById('adminMapPlaceWebsite').value = '';
     document.getElementById('adminMapPlaceNote').value = '';
@@ -2442,7 +2482,9 @@ async function updatePlaceCheckedInSupabase(index, checked) {
     const name = nameInput.value.trim();
     const address = addressInput.value.trim();
 
-    const phone = document.getElementById('adminMapPlacePhone').value.trim();
+    const phoneLocal = document.getElementById('adminMapPlacePhone').value.replace(/\D/g, '');
+    const phonePrefix = document.getElementById('adminMapPhonePrefix').value;
+    const phone = phoneLocal ? `${phonePrefix} ${phoneLocal.replace(/(\d{3})(?=\d)/g, '$1 ').trim()}` : '';
     const email = document.getElementById('adminMapPlaceEmail').value.trim();
     let website = document.getElementById('adminMapPlaceWebsite').value.trim();
 
@@ -3158,46 +3200,23 @@ function gmapEscape(v){
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const phoneInput = document.getElementById('adminMapPlacePhone');
+  const phonePrefix = document.getElementById('adminMapPhonePrefix');
 
-  function formatPhoneCZ(value) {
-    let digits = String(value || '').replace(/\D/g, '');
-
-    // Když uživatel píše českou předvolbu 420, ponecháme ji.
-    // Jinak automaticky doplníme +420.
-    if (digits.startsWith('420')) {
-      digits = digits.slice(0, 12); // 420 + 9 číslic
-    } else {
-      digits = digits.slice(0, 9); // pouze české lokální číslo
-      digits = '420' + digits;
-    }
-
-    const local = digits.slice(3, 12);
-
-    if (!local) return '+420';
-
-    const formattedLocal = local.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
-    return '+420 ' + formattedLocal;
+  function formatLocalPhone(value) {
+    const digits = String(value || '').replace(/\D/g, '').slice(0, 9);
+    return digits.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
   }
 
-  if (phoneInput) {
-    phoneInput.setAttribute('inputmode', 'tel');
-    phoneInput.setAttribute('maxlength', '16');
-    phoneInput.setAttribute('placeholder', 'Telefon, např. +420 777 123 456');
-
+  if (phoneInput && phonePrefix) {
     phoneInput.addEventListener('input', function() {
-      this.value = formatPhoneCZ(this.value);
+      this.value = formatLocalPhone(this.value);
     });
 
     phoneInput.addEventListener('blur', function() {
       const digits = this.value.replace(/\D/g, '');
 
-      if (digits === '420') {
-        this.value = '';
-        return;
-      }
-
-      if (digits.length > 0 && digits.length !== 12) {
-        alert('Telefon zadejte ve formátu +420 777 123 456.');
+      if (digits.length > 0 && digits.length !== 9) {
+        alert(`Telefon zadejte jako 9 číslic. Zvolená předvolba je ${phonePrefix.value}.`);
         this.focus();
       }
     });
